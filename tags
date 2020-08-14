@@ -1,0 +1,32 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	Development	//
+CURRENT_COMPONENT_ID	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	136;"	d
+CURRENT_PACKAGE_VERSION	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	139;"	d
+MIN_TOOL_VERSION_gcc	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	41;"	d
+MIN_TOOL_VERSION_ghc	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	52;"	d
+MIN_TOOL_VERSION_ghc_pkg	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	63;"	d
+MIN_TOOL_VERSION_haddock	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	74;"	d
+MIN_TOOL_VERSION_hpc	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	85;"	d
+MIN_TOOL_VERSION_hsc2hs	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	96;"	d
+MIN_TOOL_VERSION_pkg_config	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	107;"	d
+MIN_TOOL_VERSION_runghc	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	118;"	d
+MIN_TOOL_VERSION_strip	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	129;"	d
+MIN_VERSION_base	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	19;"	d
+MIN_VERSION_hakyll	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	30;"	d
+MIN_VERSION_ngublag_com	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	8;"	d
+TOOL_VERSION_gcc	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	38;"	d
+TOOL_VERSION_ghc	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	49;"	d
+TOOL_VERSION_ghc_pkg	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	60;"	d
+TOOL_VERSION_haddock	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	71;"	d
+TOOL_VERSION_hpc	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	82;"	d
+TOOL_VERSION_hsc2hs	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	93;"	d
+TOOL_VERSION_pkg_config	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	104;"	d
+TOOL_VERSION_runghc	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	115;"	d
+TOOL_VERSION_strip	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	126;"	d
+VERSION_base	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	16;"	d
+VERSION_hakyll	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	27;"	d
+VERSION_ngublag_com	dist-newstyle/build/x86_64-linux/ghc-8.8.3/ngublag-com-0.1.0.0/x/site/build/site/autogen/cabal_macros.h	5;"	d
