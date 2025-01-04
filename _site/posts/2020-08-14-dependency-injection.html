@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Welcome - Inject Your Dependencies with Guice</title>
+        <!-- Pure CSS CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tangerine:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <!-- Pure CSS Grids Responsive CDN -->
+    <link rel="stylesheet" href="../css/default.css" />
+</head>
+<body>    
+
+<div id="layout" class="content pure-g">
+    <!-- menu toggle -->
+    <a href="#menu" id="menuLink" class="menu-link">
+        <!-- Hamburger icon -->
+         <span></span>
+    </a>
+
+    <div id="menu">
+        <div class="pure-menu">
+            <a class="pure-menu-heading" href="../">
+                <div class="logo-container">
+                    <img src="../images/logo.svg?height=120&width=120" alt="Logo" class="logo">
+                    <div class="logo-text">Brothel <br /> for Slaking <br /> Intellectual Lusts</div>
+                </div>
+            </a>
+
+            <ul class="pure-menu-list">
+                <li class="pure-menu-item"><a href="../" class="pure-menu-link">Home</a> </li>
+                <li class="pure-menu-item"><a href="../about.html" class="pure-menu-link">About</a> </li>
+                <li class="pure-menu-item"><a href="../posts.html" class="pure-menu-link">Posts</a> </li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="main">    
+        <div class="header">
+            <h1>Inject Your Dependencies with Guice</h1>
+        </div>
+        <div class="content">   
+            <div class="subheader">
+    <small>
+        <i>
+            Posted on August 14, 2020
+            
+        </i>
+    </small>
+</div>
+<article>
+    
+    <section>
+        <p>This year I am trying to learn about Scala, because I think it is the most plausible way for me to land an FP job. So I am go straight to most popular framework for web development, that is Play framework, just in case there’s a job opening related to it.</p>
+<p>Here I am encounter a snippet that I don’t understand when I need to integrate authentication to my Play apps.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>@Singleton</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> HomeController @<span class="fu">Inject</span><span class="op">()</span> <span class="op">(</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  userAction<span class="op">:</span> UserInfoAction<span class="op">,</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    cc<span class="op">:</span> ControllerComponents</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">)</span> <span class="kw">extends</span> <span class="fu">AbstractController</span><span class="op">(</span>cc<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> index <span class="op">=</span> userAction <span class="op">{</span> <span class="kw">implicit</span> request<span class="op">:</span> UserRequest<span class="op">[</span>_<span class="op">]</span> <span class="op">=&gt;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">Ok</span><span class="op">(</span>views<span class="op">.</span>html<span class="op">.</span><span class="fu">index</span><span class="op">(</span>form<span class="op">))</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Here I am very curious about the <code>@Inject</code> annotation. This turn out comes from the Guece dependency injection framework. So in short, like all thing in java world, Play use dependency injection to customize it’s behaviour.</p>
+<h2 id="dependency-injection">Dependency Injection</h2>
+<p>This technique is well known in OOP world. This is the D in SOLID principle. It means rather than you encode your dependency in your class/module, you instead give it as argument for your object creation. More thorough (and also more correct) explanation can be read <a href="https://github.com/google/guice/wiki/Motivation">here</a>.</p>
+<p>In short dependency injection via dependency inversion solves problem where we need environment in our computation context. The same problem that can be solved by Reader Monad pattern in Functional programming world (but that’s discussion for another time).</p>
+<h2 id="guice">Guice</h2>
+<p>Guice is a lightweight dependency injection framework developed by Google. It enables you to write loosely coupled code by managing dependencies and their lifecycles for you.</p>
+<p>Here are some highlights of Guice:</p>
+<ul>
+<li><strong>Annotation-based configuration:</strong> You can use annotations like <code>@Inject</code> to inject dependencies, reducing boilerplate code.</li>
+<li><strong>Modules for configuration:</strong> You define modules to bind interfaces to their implementations.</li>
+<li><strong>Integration with Play Framework:</strong> Guice integrates seamlessly with Play, making it easy to use dependency injection in your applications.</li>
+</ul>
+<h3 id="a-simple-guice-example">A Simple Guice Example</h3>
+<p>Here’s a basic example to demonstrate Guice:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> com<span class="op">.</span>google<span class="op">.</span>inject<span class="op">.{</span>Guice<span class="op">,</span> Inject<span class="op">,</span> Module<span class="op">,</span> AbstractModule<span class="op">}</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Service interface and implementation</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">trait</span> GreetingService <span class="op">{</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> <span class="fu">greet</span><span class="op">(</span>name<span class="op">:</span> <span class="ex">String</span><span class="op">):</span> <span class="ex">String</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> GreetingServiceImpl <span class="kw">extends</span> GreetingService <span class="op">{</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">override</span> <span class="kw">def</span> <span class="fu">greet</span><span class="op">(</span>name<span class="op">:</span> <span class="ex">String</span><span class="op">):</span> <span class="ex">String</span> <span class="op">=</span> <span class="ss">s&quot;</span><span class="st">Hello, </span><span class="ss">$name</span><span class="st">!</span><span class="ss">&quot;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co">// Consumer class</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Greeter @<span class="fu">Inject</span><span class="op">()</span> <span class="op">(</span>greetingService<span class="op">:</span> GreetingService<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> <span class="fu">sayHello</span><span class="op">(</span>name<span class="op">:</span> <span class="ex">String</span><span class="op">):</span> <span class="bu">Unit</span> <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">println</span><span class="op">(</span>greetingService<span class="op">.</span><span class="fu">greet</span><span class="op">(</span>name<span class="op">))</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co">// Guice module for binding</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> AppModule <span class="kw">extends</span> AbstractModule <span class="op">{</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="kw">override</span> <span class="kw">def</span> <span class="fu">configure</span><span class="op">():</span> <span class="bu">Unit</span> <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bind</span><span class="op">(</span>classOf<span class="op">[</span>GreetingService<span class="op">]).</span><span class="fu">to</span><span class="op">(</span>classOf<span class="op">[</span>GreetingServiceImpl<span class="op">])</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="co">// Application entry point</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="kw">object</span> GuiceExampleApp <span class="kw">extends</span> App <span class="op">{</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> injector <span class="op">=</span> Guice<span class="op">.</span><span class="fu">createInjector</span><span class="op">(</span><span class="kw">new</span> AppModule<span class="op">)</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> greeter <span class="op">=</span> injector<span class="op">.</span><span class="fu">getInstance</span><span class="op">(</span>classOf<span class="op">[</span>Greeter<span class="op">])</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  greeter<span class="op">.</span><span class="fu">sayHello</span><span class="op">(</span><span class="st">&quot;Scala Developer&quot;</span><span class="op">)</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="applying-guice-to-my-problem">Applying Guice to My Problem</h3>
+<p>To apply Guice to the authentication problem in the Play Framework, let’s break it down:</p>
+<ol type="1">
+<li><p><strong>Define the Dependencies:</strong> Identify the components your controller depends on. In the provided snippet, <code>UserInfoAction</code> and <code>ControllerComponents</code> are such dependencies.</p></li>
+<li><p><strong>Use <code>@Inject</code> to Inject Dependencies:</strong> Use the <code>@Inject</code> annotation to declare dependencies in your class constructor.</p></li>
+<li><p><strong>Configure Guice Bindings:</strong> If your dependency has multiple implementations or needs specific configuration, define a Guice module to bind the interface to its implementation.</p></li>
+</ol>
+<p>Here’s how you might define <code>UserInfoAction</code>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> javax<span class="op">.</span>inject<span class="op">.</span>Inject</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> play<span class="op">.</span>api<span class="op">.</span>mvc<span class="op">.</span>_</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> UserInfoAction @<span class="fu">Inject</span><span class="op">()</span> <span class="op">(</span>parser<span class="op">:</span> BodyParsers<span class="op">.</span>Default<span class="op">)</span> <span class="kw">extends</span> ActionBuilder<span class="op">[</span>UserRequest<span class="op">,</span> AnyContent<span class="op">]</span> <span class="op">{</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">override</span> <span class="kw">protected</span> <span class="kw">def</span> executionContext<span class="op">:</span> ExecutionContext <span class="op">=</span> scala<span class="op">.</span>concurrent<span class="op">.</span>ExecutionContext<span class="op">.</span>global</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">override</span> <span class="kw">def</span> invokeBlock<span class="op">[</span>A<span class="op">](</span>request<span class="op">:</span> <span class="ex">Request</span><span class="op">[</span>A<span class="op">],</span> block<span class="op">:</span> UserRequest<span class="op">[</span>A<span class="op">]</span> <span class="op">=&gt;</span> <span class="ex">Future</span><span class="op">[</span><span class="ex">Result</span><span class="op">]):</span> <span class="ex">Future</span><span class="op">[</span><span class="ex">Result</span><span class="op">]</span> <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">val</span> userRequest <span class="op">=</span> <span class="kw">new</span> <span class="fu">UserRequest</span><span class="op">(</span>user <span class="op">=</span> <span class="st">&quot;TestUser&quot;</span><span class="op">,</span> request <span class="op">=</span> request<span class="op">)</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">block</span><span class="op">(</span>userRequest<span class="op">)</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> UserRequest<span class="op">[</span>A<span class="op">](</span><span class="kw">val</span> user<span class="op">:</span> <span class="ex">String</span><span class="op">,</span> request<span class="op">:</span> <span class="ex">Request</span><span class="op">[</span>A<span class="op">])</span> <span class="kw">extends</span> WrappedRequest<span class="op">[</span>A<span class="op">](</span>request<span class="op">)</span></span></code></pre></div>
+<p>And configure it in your module:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> com<span class="op">.</span>google<span class="op">.</span>inject<span class="op">.</span>AbstractModule</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> AppModule <span class="kw">extends</span> AbstractModule <span class="op">{</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">override</span> <span class="kw">def</span> <span class="fu">configure</span><span class="op">():</span> <span class="bu">Unit</span> <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bind</span><span class="op">(</span>classOf<span class="op">[</span>UserInfoAction<span class="op">]).</span><span class="fu">asEagerSingleton</span><span class="op">()</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>This setup ensures that Guice handles the creation and injection of <code>UserInfoAction</code>, making your <code>HomeController</code> clean and focused on its responsibilities.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Dependency Injection simplifies managing dependencies in large applications. Guice, as used in the Play Framework, makes it easy to adopt this pattern. While the learning curve might seem steep initially, the benefits in terms of code maintainability and testability are well worth the effort.</p>
+<p>Happy coding in Scala! 🚀</p>
+    </section>
+</article>
+
+        </div>
+        <div id="footer">
+            <p>Powered by <a href="http://jaspervdj.be/hakyll">Hakyll</a></p>
+        </div>
+    </div>
+</div>
+
+<script src="../js/ui.js"></script>
+</body>
+</html>
