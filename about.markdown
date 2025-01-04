@@ -2,7 +2,10 @@
 title: About
 ---
 
-A programmer at heart, I am very interested in making a good softwares that are easy to maintain and scalable. I have several experiences writing code in languages that have dynamic/static typing, and strong/weak typing. At first, I learned about object-oriented programming and design patterns related to it because that's all everybody know and use. But then I found alternative approach to design software using functional programming and it open a new world for me.:w
+Hi, I'm Ardin, an Indonesian functional programmer (pun intended). This my summary of my professional profile:
 
-I am a poor writer and speaker that's why I use this blog for my training medium. I occasionally will write in Indonesian language (aka bahasa Indonesia).
+A programmer at heart, I am very interested about creating software that is both easy to maintain and highly scalable. I have experience coding in languages with varying characteristics, including dynamic and static typing as well as strong and weak typing. My initial journey focused on object-oriented programming and its associated design patterns, as it was the prevalent approach. However, discovering functional programming opened up an entirely new perspective for me, offering innovative methods for designing software and expanding my understanding of the field.
 
+I am a seasoned software engineer with extensive experience in building reliable and scalable systems. Over my career, I have contributed to impactful projects in diverse roles spanning software development, DevOps, and site reliability engineering.
+
+My recent role as a Senior Software Development Engineer at GovTech Edu involved designing and delivering scalable technology solutions for public-sector education. Previously, at Bukalapak, I served as a Senior DevOps Engineer, Site Reliability Engineer, and Software Engineer, enhancing platform reliability and efficiency for one of Indonesia's largest e-commerce platforms. Earlier in my career, I was an early engineer at GudPoin, a startup where I played a key role in building its core products, and a Research Assistant at RC-OPPINET ITB, a joint consortium between ITB and petroleum and gas companies, developing specialized software solutions for the industry.
