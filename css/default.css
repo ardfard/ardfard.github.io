@@ -247,5 +247,39 @@ Hides the menu at `48em`, but modify this based on your app's needs.
     }
 } 
 
+/* Code block styling */
+pre {
+    background: #282c34;
+    border: 1px solid #3e4451;
+    border-radius: 4px;
+    padding: 1em;
+    margin: 1em 0;
+    overflow-x: auto;
+}
+
+code {
+    font-family: 'Source Code Pro', Consolas, Monaco, 'Andale Mono', monospace;
+    font-size: 0.9em;
+    color: #abb2bf;
+}
+
+/* Inline code */
+p code, li code {
+    background: #282c34;
+    border: 1px solid #3e4451;
+    border-radius: 3px;
+    padding: 0.2em 0.4em;
+    color: #abb2bf;
+}
+
+/* Add some spacing between code blocks and text */
+pre code {
+    padding: 0;
+    border: none;
+    background: none;
+    line-height: 1.5;
+    color: inherit;
+}
+
 
  
