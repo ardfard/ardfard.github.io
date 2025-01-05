@@ -282,5 +282,35 @@ pre code {
     color: inherit;
 }
 
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: 0.2em;
+    padding: 0.5em;
+    margin: 0 auto;
+    width: fit-content;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
 
- 
+.social-link {
+    color: #ecf0f1 !important;
+    font-size: 1.3em !important;
+    transition: color 0.2s ease-out;
+    padding: 0.15em !important;
+}
+
+.social-link:hover {
+    color: #3498db;
+}
+
+/* Center figure captions */
+figure {
+    text-align: center;
+}
+
+figcaption {
+    text-align: center;
+    font-style: italic;
+    color: #666;
+    margin-top: 0.5em;
+}

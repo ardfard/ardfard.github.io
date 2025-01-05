@@ -43,8 +43,9 @@ check the connection
 $ vault status
 ```
 
-If the connection is successful it should show output similar to below 
-![Vault status](images/vault/vault-status.png)
+If the connection is successful it should show output similar to picture below 
+
+![Vault status](../images/vault-status.png)
 
 ### From Go
 
@@ -153,4 +154,4 @@ vault kv get -mount=secret foo
 
 ## References
 
-Sample application of using Vault from within a Go apps: https://github.com/hashicorp/hello-vault-go/tree/main/sample-apphttps://github.com/hashicorp/hello-vault-go/tree/main/sample-app
+Sample application of using Vault from within a Go apps: [https://github.com/hashicorp/hello-vault-go/tree/main/sample-app](https://github.com/hashicorp/hello-vault-go/tree/main/sample-app)
