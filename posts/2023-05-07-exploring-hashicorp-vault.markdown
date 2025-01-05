@@ -2,15 +2,13 @@
 title: Exploring Hashicorp Vault
 ---
 
+HashiCorp Vault is a secure and scalable tool for managing sensitive information like API keys, tokens, and database credentials. It centralizes storage, enforces fine-grained access control, provides audit logging, and ensures encryption, addressing the challenges of dynamic, distributed environments.
 
-HashiCorp Vault is an essential tool for developers, DevOps engineers, and security professionals seeking a secure and scalable solution to manage sensitive information. It centralizes the storage, access, and management of secrets like API keys, tokens, and database credentials while providing fine-grained access control, audit logging, and encryption capabilities. Vault is designed to address the challenges of managing secrets in a dynamic, distributed environment where applications and infrastructure components need to communicate securely.
+Key features include its dynamic secrets engine, which generates short-lived credentials for databases, cloud providers, and APIs, reducing the risk of leaks or misuse. Administrators can define fine-grained access policies based on roles or application needs, enforcing the principle of least privilege.
 
-One of the key features of Vault is its dynamic secrets engine, which allows for the automatic generation of short-lived credentials for various services, including databases, cloud providers, and other third-party APIs. This approach significantly reduces the risk of credentials being leaked or misused, as each instance of an application or service receives a unique set of credentials with a limited lifespan. Additionally, Vault enforces the principle of least privilege by allowing administrators to define fine-grained policies that control access to secrets based on roles or specific application requirements.
-
-Moreover, Vault's API-driven architecture enables seamless integration with a wide range of programming languages and frameworks, making it a versatile solution for developers working in diverse technology stacks. With built-in support for features like secret versioning, key rotation, and data encryption as a service, Vault empowers teams to build and maintain secure applications that adhere to industry best practices.
+Vault’s API-driven architecture integrates seamlessly with various programming languages and frameworks. Features like secret versioning, key rotation, and encryption as a service help teams build secure applications that follow industry best practices.
 
 # Development setup
-
 
 ## Installation
 
@@ -46,6 +44,7 @@ $ vault status
 ```
 
 If the connection is successful it should show output similar to below 
+![Vault status](images/vault/vault-status.png)
 
 ### From Go
 
@@ -139,6 +138,7 @@ func readSecret(client *vault.Client, path, key string) (string, error) {
     }
 ```
 
+
 ## Cheat Sheet
 
 ### Putting a key-value inside a mount 
@@ -150,3 +150,7 @@ Getting a value based on key
 ```bash
 vault kv get -mount=secret foo
 ```
+
+## References
+
+Sample application of using Vault from within a Go apps: https://github.com/hashicorp/hello-vault-go/tree/main/sample-apphttps://github.com/hashicorp/hello-vault-go/tree/main/sample-app
