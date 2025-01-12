@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+    <title>Welcome - Propagating context in Temporal</title>
+        <!-- Pure CSS CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tangerine:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <!-- Pure CSS Grids Responsive CDN -->
+    <link rel="stylesheet" href="../css/default.css" />
+</head>
+<body>    
+
+<div id="layout" class="content pure-g">
+    <!-- menu toggle -->
+    <a href="#menu" id="menuLink" class="menu-link">
+        <!-- Hamburger icon -->
+         <span></span>
+    </a>
+
+    <div id="menu">
+        <div class="pure-menu">
+            <a class="pure-menu-heading" href="../">
+                <div class="logo-container">
+                    <img src="../images/logo.svg?height=120&width=120" alt="Logo" class="logo">
+                    <div class="logo-text">Brothel <br /> for Slaking <br /> Intellectual Lusts</div>
+                </div>
+            </a>
+
+            <div class="social-links">
+                <a href="https://github.com/ardfard" class="social-link" target="_blank" rel="noopener">
+                    <i class="fa-brands fa-github"></i>
+                </a>
+                <a href="https://linkedin.com/in/ardin-fardiansyah-74500a56/" class="social-link" target="_blank" rel="noopener">
+                    <i class="fa-brands fa-linkedin"></i>
+                </a>
+                <a href="https://twitter.com/ardfard101" class="social-link" target="_blank" rel="noopener">
+                    <i class="fa-brands fa-x-twitter"></i>
+                </a>
+                <a href="https://bsky.app/profile/ardfard.bsky.social" class="social-link" target="_blank" rel="noopener">
+                    <i class="fa-solid fa-square"></i>
+                </a>
+            </div>
+
+            <ul class="pure-menu-list">
+                <li class="pure-menu-item"><a href="../" class="pure-menu-link">Home</a> </li>
+                <li class="pure-menu-item"><a href="../about.html" class="pure-menu-link">About</a> </li>
+                <li class="pure-menu-item"><a href="../posts.html" class="pure-menu-link">Posts</a> </li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="main">    
+        <div class="header">
+            <h1>Propagating context in Temporal</h1>
+        </div>
+        <div class="content">   
+            <div class="subheader">
+    <small>
+        <i>
+            Posted on January 12, 2025
+            
+        </i>
+    </small>
+</div>
+<article>
+    
+    <section>
+        <p>In my current project, a Go service uses a request ID to identify requests and propagate it throughout the system.
+Middlewares intercept incoming requests, generate a unique ID, and pass it to the next step via context.
+The logging middleware extracts the request ID from the context and adds it to the log context in the logger.
+We also utilize Temporal to manage long-running tasks—tasks that consist of several steps that can be interrupted and resumed.
+It is beneficial to use the same request ID for logging and tracing within the Temporal workflow.
+However, how do we propagate the request ID to the Temporal workflow? This is where the context propagation feature in Temporal comes into play.</p>
+<h2 id="generating-and-propagating-request-id">Generating and Propagating Request ID</h2>
+<p>Below is a code snippet that demonstrates how to generate a request ID and propagate it to subsequent steps via context:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> RequestIDMiddleware<span class="op">()</span> gin<span class="op">.</span>HandlerFunc <span class="op">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>	<span class="cf">return</span> <span class="kw">func</span><span class="op">(</span>c <span class="op">*</span>gin<span class="op">.</span>Context<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>		requestId <span class="op">:=</span> c<span class="op">.</span>GetHeader<span class="op">(</span><span class="st">&quot;X-Request-ID&quot;</span><span class="op">)</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>		<span class="cf">if</span> requestId <span class="op">==</span> <span class="st">&quot;&quot;</span> <span class="op">{</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>			id<span class="op">,</span> _ <span class="op">:=</span> uuid<span class="op">.</span>NewUUID<span class="op">()</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>			requestId <span class="op">=</span> id<span class="op">.</span>String<span class="op">()</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>		<span class="op">}</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>		<span class="co">// Insert context to http request</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>		ctx <span class="op">:=</span> context<span class="op">.</span>WithValue<span class="op">(</span>c<span class="op">.</span>Request<span class="op">.</span>Context<span class="op">(),</span> <span class="st">&quot;request-id-context&quot;</span><span class="op">,</span> requestId<span class="op">)</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>		c<span class="op">.</span>Request <span class="op">=</span> c<span class="op">.</span>Request<span class="op">.</span>WithContext<span class="op">(</span>ctx<span class="op">)</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>		<span class="co">// Set the id to ensure that the request-id is in the response</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>		c<span class="op">.</span>Header<span class="op">(</span><span class="st">&quot;X-Request-ID&quot;</span><span class="op">,</span> requestId<span class="op">)</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>		c<span class="op">.</span>Next<span class="op">()</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>	<span class="op">}</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>All request handlers wrapped with this middleware will have a request ID in their context.
+Now, let’s explore how to propagate this request ID to the Temporal workflow.
+First, we need to define a context propagator that will extract the request ID from the context and add it to the Temporal workflow context.</p>
+<h2 id="defining-a-context-propagator">Defining a Context Propagator</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// requestKey is the key used by the go context</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> requestKey <span class="op">=</span> <span class="st">&quot;request-id-context&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">// propagationKey is the key used by the propagator to pass values through the</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">// Temporal server headers</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> propagationKey <span class="op">=</span> <span class="st">&quot;request-id-context&quot;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">// NewContextPropagator returns a context propagator that propagates a set of</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">// string key-value pairs across a workflow</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> NewContextPropagator<span class="op">()</span> workflow<span class="op">.</span>ContextPropagator <span class="op">{</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>	<span class="cf">return</span> <span class="op">&amp;</span>propagator<span class="op">{}</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co">// Inject injects values from context into headers for propagation</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>s <span class="op">*</span>propagator<span class="op">)</span> Inject<span class="op">(</span>ctx context<span class="op">.</span>Context<span class="op">,</span> writer workflow<span class="op">.</span>HeaderWriter<span class="op">)</span> <span class="dt">error</span> <span class="op">{</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>	value <span class="op">:=</span> ctx<span class="op">.</span>Value<span class="op">(</span>requestKey<span class="op">)</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>	payload<span class="op">,</span> err <span class="op">:=</span> converter<span class="op">.</span>GetDefaultDataConverter<span class="op">().</span>ToPayload<span class="op">(</span>value<span class="op">)</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>	<span class="cf">if</span> err <span class="op">!=</span> <span class="ot">nil</span> <span class="op">{</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>		<span class="cf">return</span> err</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>	<span class="op">}</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>	writer<span class="op">.</span>Set<span class="op">(</span>propagationKey<span class="op">,</span> payload<span class="op">)</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>	<span class="cf">return</span> <span class="ot">nil</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="co">// InjectFromWorkflow injects values from context into headers for propagation</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>s <span class="op">*</span>propagator<span class="op">)</span> InjectFromWorkflow<span class="op">(</span>ctx workflow<span class="op">.</span>Context<span class="op">,</span> writer workflow<span class="op">.</span>HeaderWriter<span class="op">)</span> <span class="dt">error</span> <span class="op">{</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>	value <span class="op">:=</span> ctx<span class="op">.</span>Value<span class="op">(</span>requestKey<span class="op">)</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>	payload<span class="op">,</span> err <span class="op">:=</span> converter<span class="op">.</span>GetDefaultDataConverter<span class="op">().</span>ToPayload<span class="op">(</span>value<span class="op">)</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>	<span class="cf">if</span> err <span class="op">!=</span> <span class="ot">nil</span> <span class="op">{</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>		<span class="cf">return</span> err</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>	<span class="op">}</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>	writer<span class="op">.</span>Set<span class="op">(</span>propagationKey<span class="op">,</span> payload<span class="op">)</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>	<span class="cf">return</span> <span class="ot">nil</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="co">// Extract extracts values from headers and puts them into context</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>s <span class="op">*</span>propagator<span class="op">)</span> Extract<span class="op">(</span>ctx context<span class="op">.</span>Context<span class="op">,</span> reader workflow<span class="op">.</span>HeaderReader<span class="op">)</span> <span class="op">(</span>context<span class="op">.</span>Context<span class="op">,</span> <span class="dt">error</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>	<span class="cf">if</span> value<span class="op">,</span> ok <span class="op">:=</span> reader<span class="op">.</span>Get<span class="op">(</span>propagationKey<span class="op">);</span> ok <span class="op">{</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>		<span class="kw">var</span> requestID <span class="dt">string</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>		<span class="cf">if</span> err <span class="op">:=</span> converter<span class="op">.</span>GetDefaultDataConverter<span class="op">().</span>FromPayload<span class="op">(</span>value<span class="op">,</span> <span class="op">&amp;</span>requestID<span class="op">);</span> err <span class="op">!=</span> <span class="ot">nil</span> <span class="op">{</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>			<span class="cf">return</span> ctx<span class="op">,</span> <span class="ot">nil</span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>		<span class="op">}</span></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>		ctx <span class="op">=</span> NewContext<span class="op">(</span>ctx<span class="op">,</span> requestID<span class="op">)</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>	<span class="op">}</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>	<span class="cf">return</span> ctx<span class="op">,</span> <span class="ot">nil</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a><span class="co">// ExtractToWorkflow extracts values from headers and puts them into context</span></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>s <span class="op">*</span>propagator<span class="op">)</span> ExtractToWorkflow<span class="op">(</span>ctx workflow<span class="op">.</span>Context<span class="op">,</span> reader workflow<span class="op">.</span>HeaderReader<span class="op">)</span> <span class="op">(</span>workflow<span class="op">.</span>Context<span class="op">,</span> <span class="dt">error</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>	<span class="cf">if</span> value<span class="op">,</span> ok <span class="op">:=</span> reader<span class="op">.</span>Get<span class="op">(</span>propagationKey<span class="op">);</span> ok <span class="op">{</span></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>		<span class="kw">var</span> requestID <span class="dt">string</span></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>		<span class="cf">if</span> err <span class="op">:=</span> converter<span class="op">.</span>GetDefaultDataConverter<span class="op">().</span>FromPayload<span class="op">(</span>value<span class="op">,</span> <span class="op">&amp;</span>requestID<span class="op">);</span> err <span class="op">!=</span> <span class="ot">nil</span> <span class="op">{</span></span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>			<span class="cf">return</span> ctx<span class="op">,</span> <span class="ot">nil</span></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>		<span class="op">}</span></span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>		ctx <span class="op">=</span> workflow<span class="op">.</span>WithValue<span class="op">(</span>ctx<span class="op">,</span> requestKey<span class="op">,</span> requestID<span class="op">)</span></span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>	<span class="op">}</span></span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>	<span class="cf">return</span> ctx<span class="op">,</span> <span class="ot">nil</span></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="registering-the-propagator">Registering the Propagator</h2>
+<p>Next, we need to register the propagator with the Temporal client and workflow:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>client <span class="op">:=</span> client<span class="op">.</span>NewClient<span class="op">(</span>client<span class="op">.</span>Options<span class="op">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    HostPort<span class="op">:</span> temporalHostPort<span class="op">,</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>	ContextPropagators<span class="op">:</span> <span class="op">[]</span>workflow<span class="op">.</span>ContextPropagator<span class="op">{</span>NewContextPropagator<span class="op">()},</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="op">})</span></span></code></pre></div>
+<h2 id="using-request-id-in-temporal-workflows">Using Request ID in Temporal Workflows</h2>
+<p>Now you can access the request ID within your Temporal workflows and activities:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> MyWorkflow<span class="op">(</span>ctx workflow<span class="op">.</span>Context<span class="op">)</span> <span class="dt">error</span> <span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> val <span class="op">:=</span> ctx<span class="op">.</span>Value<span class="op">(</span>requestKey<span class="op">);</span> val <span class="op">!=</span> <span class="ot">nil</span> <span class="op">{</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>	    fmt<span class="op">.</span>Printf<span class="op">(</span><span class="st">&quot;Request ID: %s</span><span class="ch">\n</span><span class="st">&quot;</span><span class="op">,</span> requestID<span class="op">)</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>	<span class="cf">return</span> <span class="ot">nil</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>By following these steps, you can effectively propagate a request ID through your system using Temporal workflows in Go. This approach enhances traceability and logging consistency across your application.</p>
+    </section>
+</article>
+
+        </div>
+        <div id="footer">
+            <p>Powered by <a href="http://jaspervdj.be/hakyll">Hakyll</a></p>
+        </div>
+    </div>
+</div>
+
+<script src="../js/ui.js"></script>
+</body>
+</html>

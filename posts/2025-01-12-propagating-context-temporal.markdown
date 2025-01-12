@@ -1,11 +1,12 @@
 ---
 title: Propagating context in Temporal
 ---
-In my current project, a Go service uses a request ID to identify requests and propagate it throughout the system. 
-Middlewares intercept incoming requests, generate a unique ID, and pass it to the next step via context. 
-The logging middleware extracts the request ID from the context and adds it to the log context in the logger. 
-We also utilize Temporal to manage long-running tasks—tasks that consist of several steps that can be interrupted and resumed. 
-It is beneficial to use the same request ID for logging and tracing within the Temporal workflow. 
+
+In my current project, a Go service uses a request ID to identify requests and propagate it throughout the system.
+Middlewares intercept incoming requests, generate a unique ID, and pass it to the next step via context.
+The logging middleware extracts the request ID from the context and adds it to the log context in the logger.
+We also utilize Temporal to manage long-running tasks—tasks that consist of several steps that can be interrupted and resumed.
+It is beneficial to use the same request ID for logging and tracing within the Temporal workflow.
 However, how do we propagate the request ID to the Temporal workflow? This is where the context propagation feature in Temporal comes into play.
 
 ## Generating and Propagating Request ID
@@ -31,10 +32,10 @@ func RequestIDMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
-``` 
+```
 
-All request handlers wrapped with this middleware will have a request ID in their context. 
-Now, let’s explore how to propagate this request ID to the Temporal workflow. 
+All request handlers wrapped with this middleware will have a request ID in their context.
+Now, let’s explore how to propagate this request ID to the Temporal workflow.
 First, we need to define a context propagator that will extract the request ID from the context and add it to the Temporal workflow context.
 
 ## Defining a Context Propagator
@@ -112,13 +113,16 @@ client := client.NewClient(client.Options{
 	ContextPropagators: []workflow.ContextPropagator{NewContextPropagator()},
 })
 ```
+
 ## Using Request ID in Temporal Workflows
+
 Now you can access the request ID within your Temporal workflows and activities:
 
 ```go
 func MyWorkflow(ctx workflow.Context) error {
-	requestID := workflow.GetContext(ctx, requestKey)
-	fmt.Println("Request ID:", requestID)
+    if val := ctx.Value(requestKey); val != nil {
+	    fmt.Printf("Request ID: %s\n", requestID)
+    }
 	return nil
 }
 ```
