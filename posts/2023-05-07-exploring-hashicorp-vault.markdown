@@ -45,7 +45,7 @@ $ vault status
 
 If the connection is successful it should show output similar to picture below 
 
-![Vault status](../images/vault-status.png)
+![Vault status](../images/vault-status.png){width=500px}
 
 ### From Go
 

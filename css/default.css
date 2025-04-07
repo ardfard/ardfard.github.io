@@ -44,7 +44,7 @@ Add transition to containers so they can push in and out.
 
 .logo-text {
     color: #000000;
-    font-size: 1.2em;
+    font-size: 1.5em;
     font-family: 'Tangerine', cursive;
     font-weight: 700;
     line-height: 1.2;
@@ -67,12 +67,26 @@ Add transition to containers so they can push in and out.
     position: fixed;
     top: 1em;
     left: max(1em, calc((100% - 1000px) / 2 + 1em));
-    bottom: 1em;
+    height: 580px;
     z-index: 1000;
     background: #6495ED;
     overflow-y: auto;
     border: 3px solid #000000;
     box-shadow: 4px 4px 0px #000000;
+}
+
+#menu .pure-menu {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#menu .pure-menu-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 0;
 }
 
 #main {
@@ -83,6 +97,8 @@ Add transition to containers so they can push in and out.
     padding: 2em;
     min-width: 0;
     margin-left: 220px;
+    margin-bottom: 2em;
+    height: fit-content;
 }
 
 .header {
@@ -140,16 +156,58 @@ Add transition to containers so they can push in and out.
     padding: 12px 1em 12px 1;
 }
 
+.menu-link {
+    position: fixed;
+    left: 150px;
+    display: none;
+}
+
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: 0.2em;
+    padding: 0.5em;
+    margin: 0.5em 0;
+    background-color: #FFFFFF;
+    border: 2px solid #000000;
+    box-shadow: 2px 2px 0px #000000;
+}
+
+.social-link {
+    color: #000000 !important;
+    font-size: 1.3em !important;
+    transition: all 0.2s ease-out;
+    padding: 0.15em !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: none !important;
+    margin: 0 !important;
+}
+
+.social-link:hover {
+    color: #6495ED !important;
+    transform: translateY(-1px);
+    background: none !important;
+    box-shadow: none !important;
+}
+
+.menu-logo-link {
+    text-decoration: none;
+}
+
+
 /* -- Responsive Styles (Media Queries) ------------------------------------- */
 
 @media (max-width: 48em) {
     #layout {
         margin: 0;
         max-width: none;
+        padding-top: 60px;
     }
 
     #menu {
         display: flex;
+        flex-direction: row;
         align-items: center;
         position: fixed;
         height: 60px;
@@ -163,95 +221,68 @@ Add transition to containers so they can push in and out.
         margin-left: 0;
         border: none;
         border-bottom: 3px solid #000000;
+        overflow: visible;
     }
 
     #main {
         margin: 1em;
-        margin-top: 70px;
         padding: 1em;
+        margin-left: 1em;
     }
 
-    .menu-link {
-        position: fixed;
-        left: 0;
-        display: none;
-    }
-
-    /* .pure-menu is the main flex container inside #menu */
     #menu .pure-menu {
         display: flex;
+        flex-direction: row;
         align-items: center;
         width: 100%;
+        gap: 1em;
     }
 
-    /* Hide original PureCSS heading on small screens */
-    #menu .pure-menu-heading {
-        display: none;
-    }
-
-    /* Style the new logo wrapper link */
-    #menu a.menu-logo-link { 
-        display: block; /* Or inline-block */
-        flex-shrink: 0; /* Keep it left */
-        text-decoration: none; /* Remove underline */
-        margin-right: auto; /* Push list to the right (alternative to text-align center) */
-    }
-
-    /* Logo container style remains */
     .logo-container {
         padding: 0;
+        flex-direction: row;
+        gap: 0.5em;
     }
 
-    /* Logo style remains */
     .logo {
         width: 40px;
-        height: 40px;
+        height: 35px;
         border-width: 2px;
-        border-color: #000000;
-        border-style: solid;
     }
 
-    /* Logo text style remains */
     .logo-text {
         display: none;
     }
 
-    /* UL list style remains (centering links) */
-    #menu .pure-menu-list {
-        flex-grow: 1;
-        display: block; 
-        text-align: center; 
-        padding: 0;
-        margin: 0;
-        list-style: none;
+    .social-links {
+        display: none;
     }
 
-    /* LI item style remains */
+    .social-link {
+        color: #000000 !important;
+        background: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0.3em !important;
+    }
+
+    #menu .pure-menu-list {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5em;
+        margin: 0;
+        padding: 0;
+    }
+
     #menu .pure-menu-item {
         margin: 0;
-        padding: 0;
-        display: inline; 
     }
 
-    /* Link style remains */
-    #menu .pure-menu-item a {
-        display: inline-block;
-        vertical-align: middle;
-        width: auto; 
-        margin: 0 0.5em; 
-        padding: 0.3em 0.6em; 
-        box-shadow: 1px 1px 0px #000000; 
-        color: #000000; 
-        background-color: #FFFFFF; 
-        border: 2px solid #000; /* Re-apply border explicitly */
-    }
-
-    /* Ensure menuLink is hidden */
-    #menuLink { display: none !important; }
-
-    .header,
-    .content {
-        padding: 1em;
+    #menu .pure-menu-link {
+        margin: 0;
+        padding: 0.3em 0.6em;
+        font-size: 0.9em;
     }
 } 
 
@@ -292,8 +323,3 @@ pre code {
     box-shadow: none;
 }
 
-.menu-link {
-    position: fixed;
-    left: 150px;
-    display: none;
-}
