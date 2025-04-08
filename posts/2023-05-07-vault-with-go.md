@@ -7,7 +7,7 @@ title: "Secure Database Access with HashiCorp Vault in a Golang Application"
 HashiCorp Vault is a popular secrets management tool that helps developers and administrators securely store, access, and manage sensitive information such as API keys, tokens, and database credentials. In this article, we will walk through the process of integrating HashiCorp Vault with a Golang application to securely access a database.
 
 
-![Accessing Database From Go Apps Using Vault Provided Credentials](../images/golang vault arch.svg){width=750px}
+![Accessing Database From Go Apps Using Vault Provided Credentials](../images/golang vault arch.svg){width=600px}
 
 
 # Integration
@@ -26,6 +26,7 @@ import (
     _ "github.com/lib/pq"
     vault "github.com/hashicorp/vault/api"
 )
+```
 
 Initialize a Vault client.
 
@@ -44,6 +45,7 @@ func initVaultClient() (*vault.Client, error) {
 
     return client, nil
 }
+```
 
 Create a function to fetch PostgreSQL credentials from Vault.
 
@@ -59,6 +61,7 @@ func getPostgresCredentials(client *vault.Client) (username, password string, er
 
     return username, password, nil
 }
+```
 
 Set up a function to establish a database connection.
 
@@ -96,6 +99,7 @@ func main() {
 
     // Add your application logic here, using the `db` object to interact with the database.
 }
+```
 
 This Golang application demonstrates how to securely access a PostgreSQL database using HashiCorp Vault. The code initializes a Vault client, fetches the PostgreSQL credentials from Vault, and establishes a database connection using the fetched credentials. You can now build your application logic using the db object to interact with the database.
 

@@ -22,7 +22,7 @@
 </head>
 <body>    
 
-<div id="layout" class="content pure-g">
+<div id="layout">
     <!-- menu toggle -->
     <a href="#menu" id="menuLink" class="menu-link">
         <!-- Hamburger icon -->
@@ -31,7 +31,7 @@
 
     <div id="menu">
         <div class="pure-menu">
-            <a class="pure-menu-heading" href="../">
+            <a href="../" class="menu-logo-link">
                 <div class="logo-container">
                     <img src="../images/logo.svg?height=120&width=120" alt="Logo" class="logo">
                     <div class="logo-text">Brothel <br /> for Slaking <br /> Intellectual Lusts</div>
@@ -80,7 +80,7 @@
         <h1 id="introduction">Introduction</h1>
 <p>HashiCorp Vault is a popular secrets management tool that helps developers and administrators securely store, access, and manage sensitive information such as API keys, tokens, and database credentials. In this article, we will walk through the process of integrating HashiCorp Vault with a Golang application to securely access a database.</p>
 <figure>
-<img src="../images/golang%20vault%20arch.svg" width="750" alt="Accessing Database From Go Apps Using Vault Provided Credentials" />
+<img src="../images/golang%20vault%20arch.svg" width="600" alt="Accessing Database From Go Apps Using Vault Provided Credentials" />
 <figcaption aria-hidden="true">Accessing Database From Go Apps Using Vault Provided Credentials</figcaption>
 </figure>
 <h1 id="integration">Integration</h1>
@@ -95,73 +95,64 @@
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    _ <span class="st">&quot;github.com/lib/pq&quot;</span></span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    vault <span class="st">&quot;github.com/hashicorp/vault/api&quot;</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>Initialize a Vault client<span class="op">.</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="st">```go</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="st">func initVaultClient() (*vault.Client, error) {</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="st">    config := &amp;vault.Config{</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="st">        Address: os.Getenv(&quot;VAULT_ADDR&quot;),</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="st">    client, err := vault.NewClient(config)</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="st">    if err != nil {</span></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="st">        return nil, fmt.Errorf(&quot;failed to create vault client: %v&quot;, err)</span></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="st">    client.SetToken(os.Getenv(&quot;VAULT_TOKEN&quot;))</span></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="st">    return client, nil</span></span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="st">Create a function to fetch PostgreSQL credentials from Vault.</span></span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="st">```</span>go</span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> getPostgresCredentials<span class="op">(</span>client <span class="op">*</span>vault<span class="op">.</span>Client<span class="op">)</span> <span class="op">(</span>username<span class="op">,</span> password <span class="dt">string</span><span class="op">,</span> err <span class="dt">error</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    secret<span class="op">,</span> err <span class="op">:=</span> client<span class="op">.</span>Logical<span class="op">().</span>Read<span class="op">(</span><span class="st">&quot;database/creds/readonly&quot;</span><span class="op">)</span></span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> err <span class="op">!=</span> <span class="ot">nil</span> <span class="op">{</span></span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="st">&quot;&quot;</span><span class="op">,</span> <span class="st">&quot;&quot;</span><span class="op">,</span> fmt<span class="op">.</span>Errorf<span class="op">(</span><span class="st">&quot;failed to read database credentials: %v&quot;</span><span class="op">,</span> err<span class="op">)</span></span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    username <span class="op">=</span> secret<span class="op">.</span>Data<span class="op">[</span><span class="st">&quot;username&quot;</span><span class="op">].(</span><span class="dt">string</span><span class="op">)</span></span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    password <span class="op">=</span> secret<span class="op">.</span>Data<span class="op">[</span><span class="st">&quot;password&quot;</span><span class="op">].(</span><span class="dt">string</span><span class="op">)</span></span>
-<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> username<span class="op">,</span> password<span class="op">,</span> <span class="ot">nil</span></span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>Set up a function to establish a database connection<span class="op">.</span></span>
-<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a><span class="st">```go</span></span>
-<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a><span class="st">func connectToDatabase(client *vault.Client) (*sql.DB, error) {</span></span>
-<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a><span class="st">    username, password, err := getPostgresCredentials(client)</span></span>
-<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a><span class="st">    if err != nil {</span></span>
-<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a><span class="st">        return nil, err</span></span>
-<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
-<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a><span class="st">    connStr := fmt.Sprintf(&quot;postgres://%s:%s@localhost:5432/postgres?sslmode=disable&quot;, username, password)</span></span>
-<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a><span class="st">    db, err := sql.Open(&quot;postgres&quot;, connStr)</span></span>
-<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a><span class="st">    if err != nil {</span></span>
-<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a><span class="st">        return nil, fmt.Errorf(&quot;failed to connect to the database: %v&quot;, err)</span></span>
-<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a><span class="st">    }</span></span>
-<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a><span class="st">    return db, nil</span></span>
-<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span></code></pre></div>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span></code></pre></div>
+<p>Initialize a Vault client.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> initVaultClient<span class="op">()</span> <span class="op">(*</span>vault<span class="op">.</span>Client<span class="op">,</span> <span class="dt">error</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    config <span class="op">:=</span> <span class="op">&amp;</span>vault<span class="op">.</span>Config<span class="op">{</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>        Address<span class="op">:</span> os<span class="op">.</span>Getenv<span class="op">(</span><span class="st">&quot;VAULT_ADDR&quot;</span><span class="op">),</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    client<span class="op">,</span> err <span class="op">:=</span> vault<span class="op">.</span>NewClient<span class="op">(</span>config<span class="op">)</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> err <span class="op">!=</span> <span class="ot">nil</span> <span class="op">{</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="ot">nil</span><span class="op">,</span> fmt<span class="op">.</span>Errorf<span class="op">(</span><span class="st">&quot;failed to create vault client: %v&quot;</span><span class="op">,</span> err<span class="op">)</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    client<span class="op">.</span>SetToken<span class="op">(</span>os<span class="op">.</span>Getenv<span class="op">(</span><span class="st">&quot;VAULT_TOKEN&quot;</span><span class="op">))</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> client<span class="op">,</span> <span class="ot">nil</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Create a function to fetch PostgreSQL credentials from Vault.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> getPostgresCredentials<span class="op">(</span>client <span class="op">*</span>vault<span class="op">.</span>Client<span class="op">)</span> <span class="op">(</span>username<span class="op">,</span> password <span class="dt">string</span><span class="op">,</span> err <span class="dt">error</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    secret<span class="op">,</span> err <span class="op">:=</span> client<span class="op">.</span>Logical<span class="op">().</span>Read<span class="op">(</span><span class="st">&quot;database/creds/readonly&quot;</span><span class="op">)</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> err <span class="op">!=</span> <span class="ot">nil</span> <span class="op">{</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="st">&quot;&quot;</span><span class="op">,</span> <span class="st">&quot;&quot;</span><span class="op">,</span> fmt<span class="op">.</span>Errorf<span class="op">(</span><span class="st">&quot;failed to read database credentials: %v&quot;</span><span class="op">,</span> err<span class="op">)</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    username <span class="op">=</span> secret<span class="op">.</span>Data<span class="op">[</span><span class="st">&quot;username&quot;</span><span class="op">].(</span><span class="dt">string</span><span class="op">)</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    password <span class="op">=</span> secret<span class="op">.</span>Data<span class="op">[</span><span class="st">&quot;password&quot;</span><span class="op">].(</span><span class="dt">string</span><span class="op">)</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> username<span class="op">,</span> password<span class="op">,</span> <span class="ot">nil</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Set up a function to establish a database connection.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> connectToDatabase<span class="op">(</span>client <span class="op">*</span>vault<span class="op">.</span>Client<span class="op">)</span> <span class="op">(*</span>sql<span class="op">.</span>DB<span class="op">,</span> <span class="dt">error</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    username<span class="op">,</span> password<span class="op">,</span> err <span class="op">:=</span> getPostgresCredentials<span class="op">(</span>client<span class="op">)</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> err <span class="op">!=</span> <span class="ot">nil</span> <span class="op">{</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="ot">nil</span><span class="op">,</span> err</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    connStr <span class="op">:=</span> fmt<span class="op">.</span>Sprintf<span class="op">(</span><span class="st">&quot;postgres://%s:%s@localhost:5432/postgres?sslmode=disable&quot;</span><span class="op">,</span> username<span class="op">,</span> password<span class="op">)</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    db<span class="op">,</span> err <span class="op">:=</span> sql<span class="op">.</span>Open<span class="op">(</span><span class="st">&quot;postgres&quot;</span><span class="op">,</span> connStr<span class="op">)</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> err <span class="op">!=</span> <span class="ot">nil</span> <span class="op">{</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="ot">nil</span><span class="op">,</span> fmt<span class="op">.</span>Errorf<span class="op">(</span><span class="st">&quot;failed to connect to the database: %v&quot;</span><span class="op">,</span> err<span class="op">)</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> db<span class="op">,</span> <span class="ot">nil</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Create a main function to execute the application.</p>
-<p>```go
-func main() {
-vaultClient, err := initVaultClient()
-if err != nil {
-log.Fatalf(“Error initializing Vault client: %v”, err)
-}</p>
-<pre><code>db, err := connectToDatabase(vaultClient)
-if err != nil {
-    log.Fatalf(&quot;Error connecting to the database: %v&quot;, err)
-}
-defer db.Close()
-
-// Add your application logic here, using the `db` object to interact with the database.</code></pre>
-<p>}</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    vaultClient<span class="op">,</span> err <span class="op">:=</span> initVaultClient<span class="op">()</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> err <span class="op">!=</span> <span class="ot">nil</span> <span class="op">{</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        log<span class="op">.</span>Fatalf<span class="op">(</span><span class="st">&quot;Error initializing Vault client: %v&quot;</span><span class="op">,</span> err<span class="op">)</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    db<span class="op">,</span> err <span class="op">:=</span> connectToDatabase<span class="op">(</span>vaultClient<span class="op">)</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> err <span class="op">!=</span> <span class="ot">nil</span> <span class="op">{</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        log<span class="op">.</span>Fatalf<span class="op">(</span><span class="st">&quot;Error connecting to the database: %v&quot;</span><span class="op">,</span> err<span class="op">)</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">defer</span> db<span class="op">.</span>Close<span class="op">()</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Add your application logic here, using the `db` object to interact with the database.</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>This Golang application demonstrates how to securely access a PostgreSQL database using HashiCorp Vault. The code initializes a Vault client, fetches the PostgreSQL credentials from Vault, and establishes a database connection using the fetched credentials. You can now build your application logic using the db object to interact with the database.</p>
 <h1 id="closing">Closing</h1>
 <p>In conclusion, HashiCorp Vault provides a robust and secure solution for managing database access credentials in modern applications. By leveraging Vault’s dynamic secrets engine, developers can greatly reduce the risk of unauthorized access to sensitive data, minimize the potential for human error, and enhance the overall security posture of their applications. Integrating Vault with a Golang application, as demonstrated in this article, not only simplifies the process of fetching and using database credentials but also promotes best practices in secure application development.</p>

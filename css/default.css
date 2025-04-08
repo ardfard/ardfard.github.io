@@ -3,7 +3,8 @@ body {
     font-size: 16px;
     font-weight: 1em;
     line-height: 1.4;
-    background-color: #fdf4e5;
+    background-color: #FFFFFF;
+    color: #000000;
 }
 
 .pure-img-responsive {
@@ -15,8 +16,7 @@ body {
 Add transition to containers so they can push in and out.
 */
 #layout,
-#menu,
-.menu-link {
+#menu {
     -webkit-transition: all 0.2s ease-out;
     -moz-transition: all 0.2s ease-out;
     -ms-transition: all 0.2s ease-out;
@@ -24,14 +24,14 @@ Add transition to containers so they can push in and out.
     transition: all 0.2s ease-out;
 }
 
-
 .logo {
     width: 100px;
     height: 100px;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid #ecf0f1;
+    border: 3px solid #000000;
     flex-shrink: 0;
+    background-color: #FFFFFF;
 }
 
 .logo-container {
@@ -43,7 +43,7 @@ Add transition to containers so they can push in and out.
 }
 
 .logo-text {
-    color: #ecf0f1;
+    color: #000000;
     font-size: 1.5em;
     font-family: 'Tangerine', cursive;
     font-weight: 700;
@@ -54,73 +54,80 @@ Add transition to containers so they can push in and out.
 
 #layout {
     position: relative;
-    left: 0;
-    padding: 0;
-}
-
-    #layout.active #menu {
-        left: 250px;
-        width: 250px;
-    }
-
-    #layout.active #main {
-        left: 250px;
-    }
-
-
-.content {
-    margin: 0 auto;
-    padding: 0 2em;
-    max-width: 800px;
-    margin-bottom: 50px;
-    line-height: 1.6em;
-}
-
-
-.header {
-     margin: 0;
-     color: #333;
-     padding: 2.5em 2em 0;
-     border-bottom: 1px solid #eee;
- }
-    .header h1 {
-        margin: 0.2em 0;
-        font-size: 2em;
-        font-weight: normal;
-        margin-top: 1.3em;
-    }
-     .header h2 {
-        font-weight: 300;
-        color: #ccc;
-        padding: 0;
-        margin-top: 0;
-    }
-
-.content-subhead {
-    margin: 50px 0 20px 0;
-    font-weight: 300;
-    color: #888;
+    margin: 1em auto;
+    min-height: 100vh;
+    display: flex;
+    max-width: 1000px;
+    width: 100%;
 }
 
 #menu {
-    margin-left: -250px;
-    padding-right: 20px;
-    width: 250px;
+    padding: 1em;
+    width: 150px;
     position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
+    top: 1em;
+    left: max(1em, calc((100% - 1000px) / 2 + 1em));
+    height: 580px;
     z-index: 1000;
-    background: #2c3e50;
+    background: #6495ED;
     overflow-y: auto;
+    border: 3px solid #000000;
+    box-shadow: 4px 4px 0px #000000;
+}
+
+#menu .pure-menu {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#menu .pure-menu-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 0;
+}
+
+#main {
+    flex: 1;
+    background: #fff;
+    border: 3px solid #000000;
+    box-shadow: 4px 4px 0px #000000;
+    padding: 2em;
+    min-width: 0;
+    margin-left: 220px;
+    margin-bottom: 2em;
+    height: fit-content;
+}
+
+.header {
+    margin-bottom: 1em;
+}
+
+.header h1 {
+    margin: 0;
+    margin-left: 30px;
+    padding: 0;
+}
+
+.content {
+    margin-left: 30px;
+    max-width: 70ch;
+    line-height: 1.6em;
 }
 
     #menu a {
-        color: #ecf0f1;
+        color: #000000;
         border: none;
         padding: 0.6em 1.2em;
         text-align: center;
-        font-size: 1.1em;
+        display: block;
+        margin: 0.5em 0;
+        border: 2px solid #000000;
+        box-shadow: 2px 2px 0px #000000;
+        background-color: #FFFFFF;
+        font-weight: bold;
     }
 
     #menu .pure-menu,
@@ -135,64 +142,10 @@ Add transition to containers so they can push in and out.
     }
         #menu .pure-menu li a:hover,
         #menu .pure-menu li a:focus {
-            background: #333;
-        }
-
-    #menu .pure-menu-heading {
-        text-transform: none;
-    }
-
-        /*
-        #menu .pure-menu-selected {
-            background: #1f8dd6;
-        }
-        
-            #menu .pure-menu-selected a {
-                color: #fff;
-            } */
-
-.menu-link {
-    position: fixed;
-    display: block; /* show this only on small screens */
-    top: 0;
-    left: 0; /* "#menu width" */
-    background: #000;
-    background: rgba(0,0,0,0.7);
-    font-size: 10px; /* change this value to increase/decrease button size */
-    z-index: 10;
-    width: 2em;
-    height: auto;
-    padding: 2.1em 1.6em;
-}
-
-    .menu-link:hover,
-    .menu-link:focus {
-        background: #000;
-    }
-
-    .menu-link span {
-        position: relative;
-        display: block;
-    }
-
-    .menu-link span,
-    .menu-link span:before,
-    .menu-link span:after {
-        background-color: #fff;
-        pointer-events: none;
-        width: 100%;
-        height: 0.2em;
-    }
-
-        .menu-link span:before,
-        .menu-link span:after {
-            position: absolute;
-            margin-top: -0.6em;
-            content: " ";
-        }
-
-        .menu-link span:after {
-            margin-top: 0.6em;
+            background: #00FF9D;
+            color: #000000;
+            box-shadow: 1px 1px 0px #000000;
+            transform: translate(1px, 1px);
         }
 
 #footer {
@@ -203,74 +156,161 @@ Add transition to containers so they can push in and out.
     padding: 12px 1em 12px 1;
 }
 
+.menu-link {
+    position: fixed;
+    left: 150px;
+    display: none;
+}
+
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: 0.2em;
+    padding: 0.5em;
+    margin: 0.5em 0;
+    background-color: #FFFFFF;
+    border: 2px solid #000000;
+    box-shadow: 2px 2px 0px #000000;
+}
+
+.social-link {
+    color: #000000 !important;
+    font-size: 1.3em !important;
+    transition: all 0.2s ease-out;
+    padding: 0.15em !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: none !important;
+    margin: 0 !important;
+}
+
+.social-link:hover {
+    color: #6495ED !important;
+    transform: translateY(-1px);
+    background: none !important;
+    box-shadow: none !important;
+}
+
+.menu-logo-link {
+    text-decoration: none;
+}
+
+
 /* -- Responsive Styles (Media Queries) ------------------------------------- */
 
-/*
-Hides the menu at `48em`, but modify this based on your app's needs.
-*/
-@media (min-width: 48em) {
-
-    .header,
-    .content {
-        padding-left: 2em;
-        padding-right: 2em;
-    }
-
+@media (max-width: 48em) {
     #layout {
-        padding-left: 250px; /* left col width "#menu" */
-        left: 0;
-    }
-    #menu {
-        left: 250px;
+        margin: 0;
+        max-width: none;
+        padding-top: 60px;
     }
 
-    .menu-link {
+    #menu {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
         position: fixed;
-        left: 250px;
+        height: 60px;
+        width: 100%;
+        top: 0;
+        left: 0;
+        padding: 0 1em;
+        background: #6495ED;
+        box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        margin-left: 0;
+        border: none;
+        border-bottom: 3px solid #000000;
+        overflow: visible;
+    }
+
+    #main {
+        margin: 1em;
+        padding: 1em;
+        margin-left: 1em;
+    }
+
+    #menu .pure-menu {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        width: 100%;
+        gap: 1em;
+    }
+
+    .logo-container {
+        padding: 0;
+        flex-direction: row;
+        gap: 0.5em;
+    }
+
+    .logo {
+        width: 40px;
+        height: 35px;
+        border-width: 2px;
+    }
+
+    .logo-text {
         display: none;
     }
 
-    #layout.active .menu-link {
-        left: 250px;
+    .social-links {
+        display: none;
     }
-}
 
-@media (max-width: 48em) {
-    /* Only apply this when the window is small. Otherwise, the following
-    case results in extra padding on the left:
-        * Make the window small.
-        * Tap the menu to trigger the active state.
-        * Make the window large again.
-    */
-    #layout.active {
-        position: relative;
-        left: 250px;
+    .social-link {
+        color: #000000 !important;
+        background: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0.3em !important;
+    }
+
+    #menu .pure-menu-list {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5em;
+        margin: 0;
+        padding: 0;
+    }
+
+    #menu .pure-menu-item {
+        margin: 0;
+    }
+
+    #menu .pure-menu-link {
+        margin: 0;
+        padding: 0.3em 0.6em;
+        font-size: 0.9em;
     }
 } 
 
 /* Code block styling */
 pre {
-    background: #282c34;
-    border: 1px solid #3e4451;
-    border-radius: 4px;
+    background: #FFFFFF;
+    border: 3px solid #000000;
+    border-radius: 0px;
     padding: 1em;
-    margin: 1em 0;
+    margin: 1.5em 0;
     overflow-x: auto;
+    box-shadow: 4px 4px 0px #000000;
 }
 
 code {
     font-family: 'Source Code Pro', Consolas, Monaco, 'Andale Mono', monospace;
     font-size: 0.9em;
-    color: #abb2bf;
+    color: #000000;
 }
 
 /* Inline code */
 p code, li code {
-    background: #282c34;
-    border: 1px solid #3e4451;
-    border-radius: 3px;
+    background: #FFFFFF;
+    border: 2px solid #000000;
+    border-radius: 0px;
     padding: 0.2em 0.4em;
-    color: #abb2bf;
+    color: #000000;
+    box-shadow: 2px 2px 0px #000000;
 }
 
 /* Add some spacing between code blocks and text */
@@ -280,37 +320,6 @@ pre code {
     background: none;
     line-height: 1.5;
     color: inherit;
+    box-shadow: none;
 }
 
-.social-links {
-    display: flex;
-    justify-content: center;
-    gap: 0.2em;
-    padding: 0.5em;
-    margin: 0 auto;
-    width: fit-content;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.social-link {
-    color: #ecf0f1 !important;
-    font-size: 1.3em !important;
-    transition: color 0.2s ease-out;
-    padding: 0.15em !important;
-}
-
-.social-link:hover {
-    color: #3498db;
-}
-
-/* Center figure captions */
-figure {
-    text-align: center;
-}
-
-figcaption {
-    text-align: center;
-    font-style: italic;
-    color: #666;
-    margin-top: 0.5em;
-}
