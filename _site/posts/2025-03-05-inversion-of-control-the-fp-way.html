@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+    <title>Welcome - The FP Way: Dependency Inversion</title>
+        <!-- Pure CSS CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tangerine:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/night-owl.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <!-- Pure CSS Grids Responsive CDN -->
+    <link rel="stylesheet" href="../css/default.css" />
+</head>
+<body>    
+
+<div id="layout">
+    <!-- menu toggle -->
+    <a href="#menu" id="menuLink" class="menu-link">
+        <!-- Hamburger icon -->
+         <span></span>
+    </a>
+
+    <div id="menu">
+        <div class="pure-menu">
+            <a href="../" class="menu-logo-link">
+                <div class="logo-container">
+                    <img src="../images/logo.svg?height=120&width=120" alt="Logo" class="logo">
+                    <div class="logo-text">Brothel <br /> for Slaking <br /> Intellectual Lusts</div>
+                </div>
+            </a>
+
+            <div class="social-links">
+                <a href="https://github.com/ardfard" class="social-link" target="_blank" rel="noopener">
+                    <i class="fa-brands fa-github"></i>
+                </a>
+                <a href="https://linkedin.com/in/ardin-fardiansyah-74500a56/" class="social-link" target="_blank" rel="noopener">
+                    <i class="fa-brands fa-linkedin"></i>
+                </a>
+                <a href="https://twitter.com/ardfard101" class="social-link" target="_blank" rel="noopener">
+                    <i class="fa-brands fa-x-twitter"></i>
+                </a>
+                <a href="https://bsky.app/profile/ardfard.bsky.social" class="social-link" target="_blank" rel="noopener">
+                    <i class="fa-solid fa-feather"></i>
+                </a>
+            </div>
+
+            <ul class="pure-menu-list">
+                <li class="pure-menu-item"><a href="../" class="pure-menu-link">Home</a> </li>
+                <li class="pure-menu-item"><a href="../about.html" class="pure-menu-link">About</a> </li>
+                <li class="pure-menu-item"><a href="../posts.html" class="pure-menu-link">Posts</a> </li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="main">    
+        <div class="header">
+            <h1>The FP Way: Dependency Inversion</h1>
+        </div>
+        <div class="content">   
+            <div class="subheader">
+    <small>
+        <i>
+            Posted on March  5, 2025
+            
+        </i>
+    </small>
+</div>
+<article>
+    
+    <section>
+        <h2 id="the-power-of-solid-principles">The Power of SOLID Principles</h2>
+<p>The SOLID principles provide a strong foundation for managing code complexity and ensuring maintainability.
+Among these, <strong>Dependency Inversion (or Inversion of Control)</strong> stands out as a powerful tool for achieving
+<strong>local reasoning</strong>, <strong>testability</strong>, and <strong>modularity</strong>. This principle encourages developers to depend on
+abstractions rather than concrete implementations, which allows for more flexible and decoupled designs.</p>
+<p>To illustrate the impact of dependency inversion, let’s walk through a simple but detailed example involving
+a logging service. This example will highlight the concept of <strong>local reasoning</strong>—the ability to understand
+the behavior of a module without needing to dive into the internals of its dependencies.</p>
+<h2 id="an-example-logging-service">An Example: Logging Service</h2>
+<h3 id="without-dependency-inversion-tightly-coupled-code">Without Dependency Inversion (Tightly Coupled Code)</h3>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ConsoleLogger <span class="op">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> <span class="fu">log</span><span class="op">(</span>message<span class="op">:</span> <span class="ex">String</span><span class="op">):</span> <span class="bu">Unit</span> <span class="op">=</span> <span class="fu">println</span><span class="op">(</span><span class="ss">s&quot;</span><span class="st">[LOG] </span><span class="ss">$message&quot;</span><span class="op">)</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="ex">Service</span> <span class="op">{</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">private</span> <span class="kw">val</span> logger <span class="op">=</span> <span class="kw">new</span> <span class="fu">ConsoleLogger</span><span class="op">()</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> <span class="fu">process</span><span class="op">(</span>data<span class="op">:</span> <span class="ex">String</span><span class="op">):</span> <span class="bu">Unit</span> <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    logger<span class="op">.</span><span class="fu">log</span><span class="op">(</span><span class="ss">s&quot;</span><span class="st">Processing: </span><span class="ss">$data&quot;</span><span class="op">)</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>In this example, the <code>Service</code> class is tightly coupled to <code>ConsoleLogger</code>. If you want to understand what
+<code>Service.process</code> does, you must also understand how <code>ConsoleLogger</code> works. This coupling becomes problematic
+when you want to change the logging behavior—for instance, logging to a file or an external system. You’d have
+to modify <code>Service</code>, which violates the Open/Closed Principle and makes your code harder to maintain.</p>
+<h3 id="with-dependency-inversion-improved-local-reasoning">With Dependency Inversion (Improved Local Reasoning)</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">trait</span> <span class="ex">Logger</span> <span class="op">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> <span class="fu">log</span><span class="op">(</span>message<span class="op">:</span> <span class="ex">String</span><span class="op">):</span> <span class="bu">Unit</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ConsoleLogger <span class="kw">extends</span> <span class="ex">Logger</span> <span class="op">{</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">override</span> <span class="kw">def</span> <span class="fu">log</span><span class="op">(</span>message<span class="op">:</span> <span class="ex">String</span><span class="op">):</span> <span class="bu">Unit</span> <span class="op">=</span> <span class="fu">println</span><span class="op">(</span><span class="ss">s&quot;</span><span class="st">[LOG] </span><span class="ss">$message&quot;</span><span class="op">)</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="ex">Service</span><span class="op">(</span>logger<span class="op">:</span> <span class="ex">Logger</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> <span class="fu">process</span><span class="op">(</span>data<span class="op">:</span> <span class="ex">String</span><span class="op">):</span> <span class="bu">Unit</span> <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    logger<span class="op">.</span><span class="fu">log</span><span class="op">(</span><span class="ss">s&quot;</span><span class="st">Processing: </span><span class="ss">$data&quot;</span><span class="op">)</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Now, the <code>Service</code> class depends on the <code>Logger</code> abstraction rather than a specific implementation.
+This allows you to understand what <code>process</code> does without knowing anything about the underlying <code>Logger</code> implementation.
+It <strong>logs a message</strong>, and that’s all you need to know.</p>
+<p>This is the essence of <strong>local reasoning</strong>: the ability to reason about a unit of code, like a method or class, by looking only
+at its interface and not the full implementation of its dependencies. In this design:</p>
+<ul>
+<li><p><strong>The behavior is explicit</strong>: You can tell that <code>Service</code> logs something without caring how the logging happens.</p></li>
+<li><p><strong>Testing becomes trivial</strong>: You can easily pass a mock logger to verify behavior:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> TestLogger <span class="kw">extends</span> <span class="ex">Logger</span> <span class="op">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> messages <span class="op">=</span> scala<span class="op">.</span>collection<span class="op">.</span>mutable<span class="op">.</span><span class="bu">ListBuffer</span><span class="op">.</span>empty<span class="op">[</span><span class="ex">String</span><span class="op">]</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">override</span> <span class="kw">def</span> <span class="fu">log</span><span class="op">(</span>message<span class="op">:</span> <span class="ex">String</span><span class="op">):</span> <span class="bu">Unit</span> <span class="op">=</span> messages <span class="op">+=</span> message</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div></li>
+<li><p><strong>Modularity improves</strong>: New logging mechanisms can be added without modifying <code>Service</code>.</p></li>
+</ul>
+<p>You could imagine using a <code>FileLogger</code>, a <code>StructuredLogger</code>, or even a <code>MetricsLogger</code>, all without touching the <code>Service</code> class.
+This design is especially powerful in larger codebases, where understanding every implementation detail is infeasible.</p>
+<h2 id="injecting-dependencies">Injecting Dependencies</h2>
+<p>Now that we understand the benefits of dependency inversion and that we have abstraction in place that we can use as a dependency.
+But how do we inject, as in passing these dependencies, to the classes that need them?</p>
+<p>There are several ways to do this, but now we will focus on the traditional ones: constructor injection, method injection, and field injection.</p>
+<h3 id="constructor-injection">Constructor Injection</h3>
+<p>In traditional <strong>class-based</strong> programming, dependencies are injected via constructors:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="fu">ServiceA</span><span class="op">(</span>dependency<span class="op">:</span> Dependency<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> <span class="fu">doSomething</span><span class="op">():</span> <span class="bu">Unit</span> <span class="op">=</span> dependency<span class="op">.</span><span class="fu">performAction</span><span class="op">()</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>This makes the dependency explicit and the class easier to test, as you can substitute different implementations of <code>Dependency</code>.</p>
+<h4 id="drawbacks-of-constructor-injection">Drawbacks of Constructor Injection</h4>
+<p>Despite its benefits, constructor injection isn’t without its challenges:</p>
+<ol type="1">
+<li><p><strong>Constructor Explosion</strong></p>
+<p>As classes grow in complexity, they often require more dependencies. This can lead to constructors with very long parameter lists,
+sometimes referred to as “constructor explosion.” Such lengthy constructors can make the code harder to read, understand, and maintain.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Example of constructor explosion</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="ex">Service</span><span class="op">(</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  logger<span class="op">:</span> <span class="ex">Logger</span><span class="op">,</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  config<span class="op">:</span> Config<span class="op">,</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  metrics<span class="op">:</span> Metrics<span class="op">,</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  cache<span class="op">:</span> Cache<span class="op">,</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  database<span class="op">:</span> Database<span class="op">,</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  apiClient<span class="op">:</span> ApiClient<span class="op">,</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  validator<span class="op">:</span> <span class="ex">Validator</span><span class="op">,</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  transformer<span class="op">:</span> <span class="ex">Transformer</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Potentially many more...</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span></code></pre></div></li>
+<li><p><strong>Object Creation Complexity</strong></p>
+<p>Because all dependencies must be provided when an object is created, the instantiation code itself can become quite complex and
+verbose, especially when dealing with deep dependency chains. This might necessitate the use of factory patterns or builders
+just to manage the creation process.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Verbose object creation</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> service <span class="op">=</span> <span class="kw">new</span> <span class="ex">Service</span><span class="op">(</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">new</span> <span class="fu">ConsoleLogger</span><span class="op">(),</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">new</span> <span class="fu">AppConfig</span><span class="op">(),</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">new</span> <span class="fu">PrometheusMetrics</span><span class="op">(),</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">new</span> <span class="fu">RedisCache</span><span class="op">(),</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">new</span> <span class="fu">PostgresDatabase</span><span class="op">(),</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">new</span> <span class="fu">HttpApiClient</span><span class="op">(),</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">new</span> <span class="fu">DataValidator</span><span class="op">(),</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">new</span> <span class="fu">JsonTransformer</span><span class="op">()</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... potentially creating dependencies of dependencies</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span></code></pre></div></li>
+<li><p><strong>Immutability vs. Reconfiguration</strong></p>
+<p>Once an object is created via constructor injection, its dependencies are typically fixed (especially if the fields are <code>val</code>s).
+While this promotes immutability, it can be inconvenient if you need to reconfigure or replace a dependency during the object’s
+lifetime without creating a completely new instance.</p></li>
+</ol>
+<h3 id="method-injection">Method Injection</h3>
+<p>In method injection, we pass the dependency as an argument to the method:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> <span class="fu">serviceA</span><span class="op">(</span>dependency<span class="op">:</span> Dependency<span class="op">):</span> <span class="bu">Unit</span> <span class="op">=</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  dependency<span class="op">.</span><span class="fu">performAction</span><span class="op">()</span></span></code></pre></div>
+<p>This function remains pure and testable, with all its dependencies explicitly provided.</p>
+<h4 id="drawbacks-of-method-injection">Drawbacks of Method Injection</h4>
+<p>While method injection promotes purity, it also has downsides:</p>
+<ol type="1">
+<li><strong>Method Signature Pollution</strong></li>
+</ol>
+<p>As components require more dependencies, passing them all as method arguments can make signatures excessively long and complex,
+potentially harming code readability and understanding. For instance, a <code>process</code> method might end up looking like this:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> <span class="fu">process</span><span class="op">(</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  data<span class="op">:</span> <span class="ex">String</span><span class="op">,</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  logger<span class="op">:</span> <span class="ex">Logger</span><span class="op">,</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  validator<span class="op">:</span> <span class="ex">Validator</span><span class="op">,</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  transformer<span class="op">:</span> <span class="ex">Transformer</span><span class="op">,</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  metrics<span class="op">:</span> Metrics</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="op">):</span> <span class="ex">Result</span></span></code></pre></div>
+<ol start="2" type="1">
+<li><strong>Dependency Passing Overhead</strong></li>
+</ol>
+<p>Dependencies often need to be passed down through multiple layers of method calls, even if intermediate methods don’t use them directly.
+This pattern, sometimes called “tramp data,” can clutter the codebase. Consider this example where <code>logger</code> is passed through several methods
+just to reach the one that needs it:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> <span class="fu">outerMethod</span><span class="op">(</span>logger<span class="op">:</span> <span class="ex">Logger</span><span class="op">):</span> <span class="bu">Unit</span> <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">innerMethod</span><span class="op">(</span>logger<span class="op">)</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> <span class="fu">innerMethod</span><span class="op">(</span>logger<span class="op">:</span> <span class="ex">Logger</span><span class="op">):</span> <span class="bu">Unit</span> <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">deeperMethod</span><span class="op">(</span>logger<span class="op">)</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> <span class="fu">deeperMethod</span><span class="op">(</span>logger<span class="op">:</span> <span class="ex">Logger</span><span class="op">):</span> <span class="bu">Unit</span> <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  logger<span class="op">.</span><span class="fu">log</span><span class="op">(</span><span class="st">&quot;Deep in the call chain&quot;</span><span class="op">)</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<ol start="3" type="1">
+<li><strong>Refactoring Challenges</strong></li>
+</ol>
+<p>Adding a new dependency to a low-level function requires modifying the signature of every method in the call chain above it.
+This propagation of changes can make refactoring more cumbersome and increase the risk of introducing errors.</p>
+<h3 id="field-injection">Field Injection</h3>
+<p>In field injection, we inject the dependency via a field:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ServiceA <span class="op">{</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  @Inject <span class="kw">var</span> dependency<span class="op">:</span> Dependency <span class="op">=</span> _</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h4 id="drawbacks-of-field-injection">Drawbacks of Field Injection</h4>
+<p>Field injection, while seemingly convenient, comes with several significant drawbacks:</p>
+<ol type="1">
+<li><p><strong>Implicit Dependencies</strong></p>
+<p>Dependencies injected via fields are not declared in the constructor signature. This makes the class’s requirements less explicit
+and harder to understand at a glance. It can also lead to runtime errors, such as <code>NullPointerException</code>, if the dependency field
+is accessed before it has been properly initialized by the injection mechanism.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Implicit dependency - harder to see requirements</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="ex">Service</span> <span class="op">{</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  @Inject <span class="kw">var</span> database<span class="op">:</span> Database <span class="op">=</span> _ <span class="co">// Could be null if injection fails or happens later</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> <span class="fu">process</span><span class="op">():</span> <span class="bu">Unit</span> <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Potential NullPointerException if database is not injected yet</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    database<span class="op">.</span><span class="fu">query</span><span class="op">()</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div></li>
+<li><p><strong>Testing Challenges</strong></p>
+<p>Testing classes that use field injection can be more difficult. Since dependencies aren’t passed via the constructor, you often need
+to use reflection, specific testing utilities provided by DI frameworks, or manually set the fields in your test setup to inject mocks
+or stubs. This adds complexity to the tests.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Testing complexity</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ServiceTest <span class="kw">extends</span> AnyWordSpec <span class="op">{</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> service <span class="op">=</span> <span class="kw">new</span> <span class="ex">Service</span><span class="op">()</span> <span class="co">// Database field is initially null or uninitialized</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Requires manual setting or framework magic to inject mock</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  service<span class="op">.</span>database <span class="op">=</span> mock<span class="op">[</span>Database<span class="op">]</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... rest of the test</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div></li>
+<li><p><strong>Mutable State</strong></p>
+<p>Field injection often requires the dependency fields to be mutable (<code>var</code> in Scala). This allows dependencies to be changed after the
+object has been constructed, which can lead to inconsistent object state and makes the code harder to reason about, especially in
+concurrent environments.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Mutable state issues</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="ex">Service</span> <span class="op">{</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  @Inject <span class="kw">var</span> logger<span class="op">:</span> <span class="ex">Logger</span> <span class="op">=</span> _</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> <span class="fu">method1</span><span class="op">():</span> <span class="bu">Unit</span> <span class="op">=</span> logger<span class="op">.</span><span class="fu">log</span><span class="op">(</span><span class="st">&quot;Using original logger&quot;</span><span class="op">)</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">// logger could be changed externally between method calls</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">// service.logger = new DifferentLogger()</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> <span class="fu">method2</span><span class="op">():</span> <span class="bu">Unit</span> <span class="op">=</span> logger<span class="op">.</span><span class="fu">log</span><span class="op">(</span><span class="st">&quot;Using potentially different logger&quot;</span><span class="op">)</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div></li>
+<li><p><strong>Initialization Order Issues</strong></p>
+<p>There can be subtle issues related to the order of initialization. If a field initializer relies on an injected dependency, it might
+fail if the dependency hasn’t been injected yet when the initializer runs. This depends heavily on the specific DI framework and how
+it handles object creation and injection.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Potential initialization order issue</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="ex">Service</span> <span class="op">{</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  @Inject <span class="kw">var</span> config<span class="op">:</span> Config <span class="op">=</span> _</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// This might fail if config is null when the Service is constructed</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">// depending on when injection happens relative to field initialization.</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> timeout<span class="op">:</span> <span class="ex">Duration</span> <span class="op">=</span> config<span class="op">.</span><span class="fu">getTimeout</span><span class="op">()</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div></li>
+</ol>
+<p>Each injection approach has its place, but understanding these drawbacks helps in choosing the right approach for your specific use case.
+Constructor injection is generally preferred for its explicitness and immutability, while method injection works well for pure functions.
+Field injection should be used sparingly, mainly when working with frameworks that require it or when dealing with legacy code.</p>
+<h2 id="dependency-injection-a-structured-approach">Dependency Injection: A Structured Approach</h2>
+<p>While manual dependency injection (like constructor or method injection) works well, it can become tedious in larger applications with many
+components and complex dependency graphs. This is where <strong>Dependency Injection (DI) frameworks</strong> come into play. These frameworks automate
+the process of creating and providing (“injecting”) dependencies where they are needed, often referred to as <strong>Inversion of Control (IoC) containers</strong>.</p>
+<h3 id="how-di-frameworks-work">How DI Frameworks Work</h3>
+<p>DI frameworks typically work by:</p>
+<ol type="1">
+<li><strong>Scanning</strong>: Identifying components (classes) and their dependencies, often through annotations (<code>@Inject</code>, <code>@Component</code>) or explicit configuration.</li>
+<li><strong>Registration</strong>: Building a map or graph of available components and how to construct them.</li>
+<li><strong>Resolution</strong>: When a component is requested, the framework automatically creates instances of its dependencies (and their dependencies, recursively) and injects them.</li>
+<li><strong>Lifecycle Management</strong>: Managing the lifecycle of components (e.g., singleton scope, request scope).</li>
+</ol>
+<p>In Scala, popular DI frameworks include <strong>MacWire</strong>, <strong>Guice</strong>, and <strong>Spring</strong> (though Spring is less common in idiomatic Scala).</p>
+<p>Here’s the MacWire example again, which uses macros for compile-time wiring:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> com<span class="op">.</span>softwaremill<span class="op">.</span>macwire<span class="op">.</span>_</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Define components</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="kw">trait</span> <span class="ex">Logger</span> <span class="op">{</span> <span class="kw">def</span> <span class="fu">log</span><span class="op">(</span>msg<span class="op">:</span> <span class="ex">String</span><span class="op">):</span> <span class="bu">Unit</span> <span class="op">}</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ConsoleLogger <span class="kw">extends</span> <span class="ex">Logger</span> <span class="op">{</span> <span class="kw">override</span> <span class="kw">def</span> <span class="fu">log</span><span class="op">(</span>msg<span class="op">:</span> <span class="ex">String</span><span class="op">):</span> <span class="bu">Unit</span> <span class="op">=</span> <span class="fu">println</span><span class="op">(</span>msg<span class="op">)</span> <span class="op">}</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="fu">ServiceA</span><span class="op">(</span>logger<span class="op">:</span> <span class="ex">Logger</span><span class="op">)</span> <span class="op">{</span> <span class="kw">def</span> <span class="fu">run</span><span class="op">():</span> <span class="bu">Unit</span> <span class="op">=</span> logger<span class="op">.</span><span class="fu">log</span><span class="op">(</span><span class="st">&quot;ServiceA running&quot;</span><span class="op">)</span> <span class="op">}</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="fu">ServiceB</span><span class="op">(</span>logger<span class="op">:</span> <span class="ex">Logger</span><span class="op">,</span> serviceA<span class="op">:</span> ServiceA<span class="op">)</span> <span class="op">{</span> <span class="kw">def</span> <span class="fu">run</span><span class="op">():</span> <span class="bu">Unit</span> <span class="op">=</span> <span class="op">{</span> logger<span class="op">.</span><span class="fu">log</span><span class="op">(</span><span class="st">&quot;ServiceB running&quot;</span><span class="op">);</span> serviceA<span class="op">.</span><span class="fu">run</span><span class="op">()</span> <span class="op">}</span> <span class="op">}</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="co">// Define a module to wire dependencies</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="kw">trait</span> AppModule <span class="op">{</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Define how to create dependencies</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">lazy</span> <span class="kw">val</span> logger<span class="op">:</span> <span class="ex">Logger</span> <span class="op">=</span> wire<span class="op">[</span>ConsoleLogger<span class="op">]</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">lazy</span> <span class="kw">val</span> serviceA<span class="op">:</span> ServiceA <span class="op">=</span> wire<span class="op">[</span>ServiceA<span class="op">]</span> <span class="co">// MacWire figures out it needs 'logger'</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">lazy</span> <span class="kw">val</span> serviceB<span class="op">:</span> ServiceB <span class="op">=</span> wire<span class="op">[</span>ServiceB<span class="op">]</span> <span class="co">// MacWire figures out it needs 'logger' and 'serviceA'</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="co">// Instantiate the application</span></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> app <span class="op">=</span> <span class="kw">new</span> AppModule <span class="op">{}</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>app<span class="op">.</span>serviceB<span class="op">.</span><span class="fu">run</span><span class="op">()</span> <span class="co">// All dependencies are automatically wired and instantiated</span></span></code></pre></div>
+<h3 id="benefits-of-di-frameworks">Benefits of DI Frameworks</h3>
+<ul>
+<li><strong>Reduced Boilerplate</strong>: Automates the repetitive task of manually creating and wiring dependencies.</li>
+<li><strong>Centralized Configuration</strong>: Dependency configuration is often centralized in modules or configuration files, making it easier to manage.</li>
+<li><strong>Improved Modularity</strong>: Encourages designing components with clear dependencies, making them easier to reuse and test in isolation.</li>
+<li><strong>Lifecycle Management</strong>: Frameworks can manage the lifecycle of objects (e.g., ensuring only one instance of a service exists).</li>
+</ul>
+<h3 id="drawbacks-of-di-frameworks">Drawbacks of DI Frameworks</h3>
+<p>Despite their benefits, DI frameworks introduce their own set of challenges:</p>
+<ol type="1">
+<li><strong>Runtime Complexity &amp; Errors (for some frameworks)</strong>
+<ul>
+<li>Frameworks like Guice or Spring resolve dependencies primarily at runtime using reflection.</li>
+<li>Configuration errors (e.g., missing bindings, dependency cycles) might only be caught when the application starts or even later, leading to runtime exceptions.</li>
+<li>MacWire mitigates this by performing wiring at compile time, catching many errors earlier.</li>
+<li>Example (Runtime Error in Guice/Spring):</li>
+</ul>
+<pre><code>// Compiles fine, but might fail at runtime if DatabaseBinding is missing
+@Inject
+private Database database;</code></pre></li>
+<li><strong>Configuration Overhead &amp; Complexity</strong>
+<ul>
+<li>Requires maintaining framework-specific configuration (modules, annotations, XML).</li>
+<li>Configuration can become complex and verbose in large applications.</li>
+<li>Understanding the complete dependency graph can become difficult.</li>
+<li>Example (Complex Guice Module):</li>
+</ul>
+<div class="sourceCode" id="cb17"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="kw">class</span> AppModule <span class="kw">extends</span> AbstractModule <span class="op">{</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">protected</span> <span class="dt">void</span> <span class="fu">configure</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">bind</span><span class="op">(</span>Database<span class="op">.</span><span class="fu">class</span><span class="op">).</span><span class="fu">to</span><span class="op">(</span>PostgresDatabase<span class="op">.</span><span class="fu">class</span><span class="op">).</span><span class="fu">in</span><span class="op">(</span>Scopes<span class="op">.</span><span class="fu">SINGLETON</span><span class="op">);</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>        <span class="fu">bind</span><span class="op">(</span>Cache<span class="op">.</span><span class="fu">class</span><span class="op">).</span><span class="fu">to</span><span class="op">(</span>RedisCache<span class="op">.</span><span class="fu">class</span><span class="op">);</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">bind</span><span class="op">(</span><span class="bu">Logger</span><span class="op">.</span><span class="fu">class</span><span class="op">).</span><span class="fu">toInstance</span><span class="op">(</span><span class="kw">new</span> <span class="fu">Slf4jLogger</span><span class="op">());</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>        <span class="co">// ... dozens more bindings</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div></li>
+<li><strong>Learning Curve</strong>
+<ul>
+<li>Requires developers to learn the specific concepts, APIs, and annotations of the chosen framework.</li>
+<li>Can be overkill for smaller projects where manual DI is sufficient.</li>
+</ul></li>
+<li><strong>Debugging Difficulties</strong>
+<ul>
+<li>Stack traces involving framework-generated code or reflection can be harder to decipher.</li>
+<li>Tracing how a specific dependency instance was created and injected can be challenging.</li>
+<li>Example (Confusing Stack Trace):</li>
+</ul>
+<pre><code>Caused by: com.google.inject.ProvisionException: Unable to provision, see the following errors:
+1) No implementation for Database was bound.
+  while locating Database
+    for parameter 0 at UserService.&lt;init&gt;(UserService.java:15)
+  while locating UserService</code></pre></li>
+<li><strong>Performance Impact</strong>
+<ul>
+<li>Runtime reflection (used by some frameworks) can add overhead, especially during application startup.</li>
+<li>The framework itself consumes memory and CPU resources.</li>
+<li>Compile-time frameworks like MacWire avoid runtime reflection overhead but can increase compile times.</li>
+</ul></li>
+<li><strong>Framework Lock-in</strong>
+<ul>
+<li>Code becomes coupled to the specific DI framework’s annotations and APIs.</li>
+<li>Migrating to a different framework or removing the framework can require significant refactoring.</li>
+<li>Example (Framework-specific annotations):</li>
+</ul>
+<div class="sourceCode" id="cb19"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="at">@Component</span> <span class="co">// Spring annotation</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="kw">class</span> MyService <span class="op">{</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Autowired</span> <span class="co">// Spring annotation</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> Dependency dep<span class="op">;</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div></li>
+<li><strong>“Magic” and Reduced Transparency</strong>
+<ul>
+<li>The automated nature of DI can sometimes feel like “magic,” obscuring how components are created and connected.</li>
+<li>It might be less obvious where dependencies come from compared to explicit constructor injection.</li>
+</ul></li>
+</ol>
+<p>Choosing whether to use a DI framework involves weighing these benefits and drawbacks. For large, complex applications,
+the reduction in boilerplate and improved organization might justify the added complexity. For smaller projects,
+the overhead might not be worth it. Compile-time frameworks like MacWire offer a middle ground by providing automation
+while catching errors early.</p>
+<h2 id="functional-dependency-management">Functional Dependency Management</h2>
+<p>Functional programming takes a different route. Instead of relying on classes or frameworks, you pass dependencies explicitly using higher-order functions or abstractions like the <strong>Reader Monad</strong>:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> cats<span class="op">.</span>data<span class="op">.</span><span class="ex">Reader</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="cf">case</span> <span class="kw">class</span> <span class="fu">Config</span><span class="op">(</span>apiKey<span class="op">:</span> <span class="ex">String</span><span class="op">)</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fetchData<span class="op">:</span> <span class="ex">Reader</span><span class="op">[</span>Config<span class="op">,</span> <span class="ex">String</span><span class="op">]</span> <span class="op">=</span> <span class="ex">Reader</span> <span class="op">{</span> config <span class="op">=&gt;</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="ss">s&quot;</span><span class="st">Fetching data with API key: </span><span class="ss">${</span>config<span class="op">.</span>apiKey<span class="ss">}&quot;</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> result <span class="op">=</span> fetchData<span class="op">.</span><span class="fu">run</span><span class="op">(</span><span class="fu">Config</span><span class="op">(</span><span class="st">&quot;my-secret-key&quot;</span><span class="op">))</span></span></code></pre></div>
+<p>Here, <code>fetchData</code> is a dependency-aware computation. The dependency (<code>Config</code>) is passed in explicitly, allowing for easy testing and reuse.</p>
+<h2 id="modern-scala-using-zio-for-dependency-management">Modern Scala: Using ZIO for Dependency Management</h2>
+<p>In modern Scala codebases, effect systems like <a href="https://zio.dev">ZIO</a> provide powerful tools for managing dependencies in a functional and composable way:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode scala"><code class="sourceCode scala"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> zio<span class="op">.*</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="kw">trait</span> ConfigService <span class="op">{</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> getConfig<span class="op">:</span> UIO<span class="op">[</span><span class="ex">String</span><span class="op">]</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="cf">case</span> <span class="kw">class</span> <span class="fu">ConfigServiceLive</span><span class="op">()</span> <span class="kw">extends</span> ConfigService <span class="op">{</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">override</span> <span class="kw">def</span> getConfig<span class="op">:</span> UIO<span class="op">[</span><span class="ex">String</span><span class="op">]</span> <span class="op">=</span> ZIO<span class="op">.</span><span class="fu">succeed</span><span class="op">(</span><span class="st">&quot;my-secret-key&quot;</span><span class="op">)</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> program<span class="op">:</span> ZIO<span class="op">[</span>ConfigService<span class="op">,</span> Nothing<span class="op">,</span> <span class="bu">Unit</span><span class="op">]</span> <span class="op">=</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  ZIO<span class="op">.</span>serviceWithZIO<span class="op">[</span>ConfigService<span class="op">](</span>_<span class="op">.</span>getConfig<span class="op">.</span><span class="fu">flatMap</span><span class="op">(</span>cfg <span class="op">=&gt;</span> ZIO<span class="op">.</span><span class="fu">debug</span><span class="op">(</span><span class="ss">s&quot;</span><span class="st">Using config: </span><span class="ss">$cfg&quot;</span><span class="op">)))</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> runtime <span class="op">=</span> ZIO<span class="op">.</span>runtime<span class="op">[</span>ConfigServiceLive<span class="op">]</span></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>runtime<span class="op">.</span><span class="fu">unsafeRun</span><span class="op">(</span>program<span class="op">.</span><span class="fu">provide</span><span class="op">(</span><span class="fu">ConfigServiceLive</span><span class="op">()))</span></span></code></pre></div>
+<p>ZIO’s environment model (<code>ZEnvironment</code>) allows for type-safe and composable dependency injection. It ensures that:</p>
+<ul>
+<li>Dependencies are passed explicitly.</li>
+<li>Code is easily testable by swapping out environments.</li>
+<li>Side effects and resource management are handled predictably.</li>
+</ul>
+<p>This approach brings together the strengths of dependency inversion, functional programming, and strong type systems to build robust, maintainable software.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Dependency Inversion is a key principle for building clean, modular, and maintainable applications. By depending on abstractions rather than concrete implementations, you gain:</p>
+<ul>
+<li><strong>Improved local reasoning</strong>: You can understand code in isolation.</li>
+<li><strong>Enhanced testability</strong>: Easily substitute dependencies with mocks or stubs.</li>
+<li><strong>Greater flexibility</strong>: Swap implementations without changing core logic.</li>
+</ul>
+<p>From simple constructor injection to sophisticated effect systems like ZIO, Scala offers powerful tools to support this principle in both object-oriented and functional styles. Embracing dependency inversion leads to software that is not only easier to maintain and test but also more resilient to change as your application grows.</p>
+<p>Whether you’re writing a small utility or a large distributed system, make dependency inversion a central part of your design strategy—it pays off in the long run.</p>
+    </section>
+</article>
+
+        </div>
+        <div id="footer">
+            <p>Powered by <a href="http://jaspervdj.be/hakyll">Hakyll</a></p>
+        </div>
+    </div>
+</div>
+
+<script src="../js/ui.js"></script>
+</body>
+</html>

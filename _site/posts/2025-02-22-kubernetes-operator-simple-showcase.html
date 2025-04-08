@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+    <title>Welcome - 2025-02-22-kubernetes-operator-simple-showcase</title>
+        <!-- Pure CSS CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tangerine:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/night-owl.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <!-- Pure CSS Grids Responsive CDN -->
+    <link rel="stylesheet" href="../css/default.css" />
+</head>
+<body>    
+
+<div id="layout">
+    <!-- menu toggle -->
+    <a href="#menu" id="menuLink" class="menu-link">
+        <!-- Hamburger icon -->
+         <span></span>
+    </a>
+
+    <div id="menu">
+        <div class="pure-menu">
+            <a href="../" class="menu-logo-link">
+                <div class="logo-container">
+                    <img src="../images/logo.svg?height=120&width=120" alt="Logo" class="logo">
+                    <div class="logo-text">Brothel <br /> for Slaking <br /> Intellectual Lusts</div>
+                </div>
+            </a>
+
+            <div class="social-links">
+                <a href="https://github.com/ardfard" class="social-link" target="_blank" rel="noopener">
+                    <i class="fa-brands fa-github"></i>
+                </a>
+                <a href="https://linkedin.com/in/ardin-fardiansyah-74500a56/" class="social-link" target="_blank" rel="noopener">
+                    <i class="fa-brands fa-linkedin"></i>
+                </a>
+                <a href="https://twitter.com/ardfard101" class="social-link" target="_blank" rel="noopener">
+                    <i class="fa-brands fa-x-twitter"></i>
+                </a>
+                <a href="https://bsky.app/profile/ardfard.bsky.social" class="social-link" target="_blank" rel="noopener">
+                    <i class="fa-solid fa-feather"></i>
+                </a>
+            </div>
+
+            <ul class="pure-menu-list">
+                <li class="pure-menu-item"><a href="../" class="pure-menu-link">Home</a> </li>
+                <li class="pure-menu-item"><a href="../about.html" class="pure-menu-link">About</a> </li>
+                <li class="pure-menu-item"><a href="../posts.html" class="pure-menu-link">Posts</a> </li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="main">    
+        <div class="header">
+            <h1>2025-02-22-kubernetes-operator-simple-showcase</h1>
+        </div>
+        <div class="content">   
+            <div class="subheader">
+    <small>
+        <i>
+            Posted on February 22, 2025
+            
+        </i>
+    </small>
+</div>
+<article>
+    
+    <section>
+        <h1 id="kubernetes-operator-simple-showcase">Kubernetes Operator Simple Showcase</h1>
+<h2 id="introduction">Introduction</h2>
+<p>This post is just a simple exploratory post to record my learning process of building a Kubernetes operator.
+We will build a simple Kubernetes operator using operator-sdk and go.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li>Go</li>
+<li>Kubernetes cluster (e.g. minikube, KinD, or real cluster)</li>
+<li>kubectl</li>
+<li>Operator-sdk cli</li>
+<li>kubebuilder (for generating Kubernetes APIs)</li>
+</ul>
+<h2 id="create-a-new-operator-project">Create a new operator project</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">operator-sdk</span> init <span class="at">--domain</span><span class="op">=</span>ngublag.com <span class="at">--repo</span><span class="op">=</span>github.com/ardfard/k8s-operator-showcase</span></code></pre></div>
+<p>This will scaffold Go project for the operator.</p>
+<h2 id="define-a-custom-resource-definition-crd">Define a Custom Resource Definition (CRD)</h2>
+<p>Now, create an API for our custom resource App:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">operator-sdk</span> create api <span class="at">--group</span> apps <span class="at">--version</span> v1alpha1 <span class="at">--kind</span> App <span class="at">--resource</span> <span class="at">--controller</span></span></code></pre></div>
+<p>This command generates:</p>
+<ul>
+<li>A CRD definition (api/v1alpha1/app_types.go)</li>
+<li>A controller (controllers/app_controller.go)</li>
+</ul>
+<ol start="4" type="1">
+<li>Define the CRD Schema</li>
+</ol>
+<p>Edit <code>api/v1alpha1/app_types.go</code> to define the spec and status of our App resource:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span> v1alpha1</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="op">(</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>	metav1 <span class="st">&quot;k8s.io/apimachinery/pkg/apis/meta/v1&quot;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">// AppSpec defines the desired state</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> AppSpec <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>	Replicas <span class="dt">int32</span> <span class="st">`json:&quot;replicas&quot;`</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>	Image    <span class="dt">string</span> <span class="st">`json:&quot;image&quot;`</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co">// AppStatus defines the observed state</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> AppStatus <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>	AvailableReplicas <span class="dt">int32</span> <span class="st">`json:&quot;availableReplicas&quot;`</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="co">//+kubebuilder:object:root=true</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="co">//+kubebuilder:subresource:status</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> App <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>	metav1<span class="op">.</span>TypeMeta   <span class="st">`json:&quot;,inline&quot;`</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>	metav1<span class="op">.</span>ObjectMeta <span class="st">`json:&quot;metadata,omitempty&quot;`</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>	Spec   AppSpec   <span class="st">`json:&quot;spec,omitempty&quot;`</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>	Status AppStatus <span class="st">`json:&quot;status,omitempty&quot;`</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="co">//+kubebuilder:object:root=true</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> AppList <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>	metav1<span class="op">.</span>TypeMeta <span class="st">`json:&quot;,inline&quot;`</span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>	metav1<span class="op">.</span>ListMeta <span class="st">`json:&quot;metadata,omitempty&quot;`</span></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>	Items           <span class="op">[]</span>App <span class="st">`json:&quot;items&quot;`</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> init<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>	SchemeBuilder<span class="op">.</span>Register<span class="op">(&amp;</span>App<span class="op">{},</span> <span class="op">&amp;</span>AppList<span class="op">{})</span></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>This defines an App resource with:</p>
+<ul>
+<li>A spec field containing replicas and image.</li>
+<li>A status field tracking availableReplicas.</li>
+<li>Init function to register the App resource with the SchemeBuilder.</li>
+</ul>
+<p>Generate the CRD YAML:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> generate <span class="kw">&amp;&amp;</span> <span class="fu">make</span> manifests</span></code></pre></div>
+<h2 id="implement-the-controller-logic">Implement the Controller Logic</h2>
+<p>Edit controllers/app_controller.go to manage the App resource. The controller will ensure that a corresponding Deployment exists.</p>
+<p>Replace the Reconcile function with:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>r <span class="op">*</span>AppReconciler<span class="op">)</span> Reconcile<span class="op">(</span>ctx context<span class="op">.</span>Context<span class="op">,</span> req ctrl<span class="op">.</span>Request<span class="op">)</span> <span class="op">(</span>ctrl<span class="op">.</span>Result<span class="op">,</span> <span class="dt">error</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>	<span class="kw">var</span> app appsv1alpha1<span class="op">.</span>App</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>	<span class="cf">if</span> err <span class="op">:=</span> r<span class="op">.</span>Get<span class="op">(</span>ctx<span class="op">,</span> req<span class="op">.</span>NamespacedName<span class="op">,</span> <span class="op">&amp;</span>app<span class="op">);</span> err <span class="op">!=</span> <span class="ot">nil</span> <span class="op">{</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>		<span class="cf">return</span> ctrl<span class="op">.</span>Result<span class="op">{},</span> client<span class="op">.</span>IgnoreNotFound<span class="op">(</span>err<span class="op">)</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>	<span class="op">}</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>	<span class="co">// Define deployment for the app</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>	deployment <span class="op">:=</span> <span class="op">&amp;</span>appsv1<span class="op">.</span>Deployment<span class="op">{</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>		ObjectMeta<span class="op">:</span> metav1<span class="op">.</span>ObjectMeta<span class="op">{</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>			Name<span class="op">:</span>      app<span class="op">.</span>Name<span class="op">,</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>			Namespace<span class="op">:</span> app<span class="op">.</span>Namespace<span class="op">,</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>		<span class="op">},</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>		Spec<span class="op">:</span> appsv1<span class="op">.</span>DeploymentSpec<span class="op">{</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>			Replicas<span class="op">:</span> <span class="op">&amp;</span>app<span class="op">.</span>Spec<span class="op">.</span>Replicas<span class="op">,</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>			Selector<span class="op">:</span> <span class="op">&amp;</span>metav1<span class="op">.</span>LabelSelector<span class="op">{</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>				MatchLabels<span class="op">:</span> <span class="kw">map</span><span class="op">[</span><span class="dt">string</span><span class="op">]</span><span class="dt">string</span><span class="op">{</span><span class="st">&quot;app&quot;</span><span class="op">:</span> app<span class="op">.</span>Name<span class="op">},</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>			<span class="op">},</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>			Template<span class="op">:</span> corev1<span class="op">.</span>PodTemplateSpec<span class="op">{</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>				ObjectMeta<span class="op">:</span> metav1<span class="op">.</span>ObjectMeta<span class="op">{</span>Labels<span class="op">:</span> <span class="kw">map</span><span class="op">[</span><span class="dt">string</span><span class="op">]</span><span class="dt">string</span><span class="op">{</span><span class="st">&quot;app&quot;</span><span class="op">:</span> app<span class="op">.</span>Name<span class="op">}},</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>				Spec<span class="op">:</span> corev1<span class="op">.</span>PodSpec<span class="op">{</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>					Containers<span class="op">:</span> <span class="op">[]</span>corev1<span class="op">.</span>Container<span class="op">{</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>						<span class="op">{</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>							Name<span class="op">:</span>  <span class="st">&quot;app&quot;</span><span class="op">,</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>							Image<span class="op">:</span> app<span class="op">.</span>Spec<span class="op">.</span>Image<span class="op">,</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>						<span class="op">},</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>					<span class="op">},</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>				<span class="op">},</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>			<span class="op">},</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>		<span class="op">},</span>	</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>	<span class="op">}</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>	<span class="co">// Create or update the deployment</span></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>	<span class="cf">if</span> err <span class="op">:=</span> r<span class="op">.</span>Client<span class="op">.</span>Create<span class="op">(</span>ctx<span class="op">,</span> deployment<span class="op">);</span> err <span class="op">!=</span> <span class="ot">nil</span> <span class="op">{</span></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>		<span class="cf">return</span> ctrl<span class="op">.</span>Result<span class="op">{},</span> err</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>	<span class="op">}</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>	<span class="co">// Update the status of the app</span></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>	app<span class="op">.</span>Status<span class="op">.</span>AvailableReplicas <span class="op">=</span> deployment<span class="op">.</span>Status<span class="op">.</span>AvailableReplicas</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>	</span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>	<span class="cf">if</span> err <span class="op">:=</span> r<span class="op">.</span>Client<span class="op">.</span>Status<span class="op">().</span>Update<span class="op">(</span>ctx<span class="op">,</span> <span class="op">&amp;</span>app<span class="op">);</span> err <span class="op">!=</span> <span class="ot">nil</span> <span class="op">{</span></span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>		<span class="cf">return</span> ctrl<span class="op">.</span>Result<span class="op">{},</span> err</span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>	<span class="op">}</span></span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>	<span class="cf">return</span> ctrl<span class="op">.</span>Result<span class="op">{},</span> <span class="ot">nil</span></span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="deploy-the-operator">Deploy the Operator</h2>
+<h3 id="build-and-push-the-operator-image">Build and Push the Operator Image</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> docker-build IMG=example.com/app-operator:v1</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> docker-push IMG=example.com/app-operator:v1</span></code></pre></div>
+<h3 id="deploy-to-kubernetes">Deploy to Kubernetes</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> deploy IMG=example.com/app-operator:v1</span></code></pre></div>
+<p>This installs the CRD and the Operator into the cluster.</p>
+<h2 id="create-a-custom-resource">Create a Custom Resource</h2>
+<p>Define an App instance in <code>app-sample.yaml</code>:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">apiVersion</span><span class="kw">:</span><span class="at"> apps.example.com/v1alpha1</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">kind</span><span class="kw">:</span><span class="at"> App</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">metadata</span><span class="kw">:</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">name</span><span class="kw">:</span><span class="at"> my-app</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">spec</span><span class="kw">:</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">replicas</span><span class="kw">:</span><span class="at"> </span><span class="dv">3</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">image</span><span class="kw">:</span><span class="at"> nginx:latest</span></span></code></pre></div>
+<p>Apply it:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">kubectl</span> apply <span class="at">-f</span> app-sample.yaml</span></code></pre></div>
+<p>Check the created Deployment:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">kubectl</span> get deployments</span></code></pre></div>
+<h2 id="verify-the-operator">Verify the Operator</h2>
+<p>List the running pods:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">kubectl</span> get pods</span></code></pre></div>
+<p>Check the App resource:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">kubectl</span> get app my-app <span class="at">-o</span> yaml</span></code></pre></div>
+<p>You should see the status.availableReplicas field reflecting the deployment state.</p>
+<h2 id="clean-up-the-operator">Clean Up the Operator</h2>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> undeploy</span></code></pre></div>
+<h2 id="conclusion">Conclusion</h2>
+<p>This post demonstrated how to build a simple Kubernetes operator using operator-sdk and go. You can find the complete code in <a href="https://github.com/ardfard/k8s-operator-showcase">this repository</a>.</p>
+    </section>
+</article>
+
+        </div>
+        <div id="footer">
+            <p>Powered by <a href="http://jaspervdj.be/hakyll">Hakyll</a></p>
+        </div>
+    </div>
+</div>
+
+<script src="../js/ui.js"></script>
+</body>
+</html>
