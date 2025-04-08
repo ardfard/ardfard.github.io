@@ -117,6 +117,33 @@ Add transition to containers so they can push in and out.
     line-height: 1.6em;
 }
 
+.skills-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2em;
+    margin: 1em 0;
+}
+
+.skill-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.skill-column h3 {
+    margin-top: 0;
+}
+
+@media (max-width: 48em) {
+    .skills-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+.skills-section ul {
+    margin: 0;
+    padding-left: 1.2em;
+}
+
     #menu a {
         color: #000000;
         border: none;
@@ -195,6 +222,109 @@ Add transition to containers so they can push in and out.
     text-decoration: none;
 }
 
+/* Code block styling */
+pre {
+    background: #F0F7FF;
+    border: 3px solid #000000;
+    border-radius: 0px;
+    padding: 0.8em;
+    margin: 1.5em 0;
+    overflow-x: auto;
+    box-shadow: 4px 4px 0px #000000;
+}
+
+code {
+    font-family: 'Source Code Pro', Consolas, Monaco, 'Andale Mono', monospace;
+    font-size: 0.8em;
+    color: #000000;
+}
+
+/* Inline code */
+p code, li code {
+    background: #F0F7FF;
+    padding: 0.2em 0.4em;
+    border: 2px solid #000000;
+    box-shadow: 2px 2px 0px #000000;
+    color: #000000;
+    border-radius: 0;
+}
+
+/* Add some spacing between code blocks and text */
+pre code {
+    padding: 0;
+    border: none;
+    background: none;
+    line-height: 1.5;
+    color: inherit;
+    box-shadow: none;
+}
+
+/* Syntax highlighting */
+.hljs-keyword {
+    color: #FF80BF;
+    font-weight: bold;
+}
+
+.hljs-string {
+    color: #98FB98;
+}
+
+.hljs-number {
+    color: #FFB266;
+}
+
+.hljs-function {
+    color: #87CEFA;
+}
+
+.hljs-title {
+    color: #87CEFA;
+    font-weight: bold;
+}
+
+.hljs-params {
+    color: #E6E6E6;
+}
+
+.hljs-comment {
+    color: #A6A6A6;
+    font-style: italic;
+}
+
+.hljs-built_in {
+    color: #DDA0DD;
+}
+
+.hljs-type {
+    color: #FF80BF;
+}
+
+.hljs-literal {
+    color: #FFB266;
+}
+
+.hljs-variable {
+    color: #E6E6E6;
+}
+
+.hljs-operator {
+    color: #FF80BF;
+    font-weight: bold;
+}
+
+.hljs-punctuation {
+    color: #E6E6E6;
+}
+
+/* Make sure inline code is visible */
+.hljs {
+    color: #E6E6E6;
+}
+
+/* Ensure comments are visible enough */
+.hljs .hljs-comment {
+    color: #A6A6A6;
+}
 
 /* -- Responsive Styles (Media Queries) ------------------------------------- */
 
@@ -285,41 +415,4 @@ Add transition to containers so they can push in and out.
         font-size: 0.9em;
     }
 } 
-
-/* Code block styling */
-pre {
-    background: #FFFFFF;
-    border: 3px solid #000000;
-    border-radius: 0px;
-    padding: 1em;
-    margin: 1.5em 0;
-    overflow-x: auto;
-    box-shadow: 4px 4px 0px #000000;
-}
-
-code {
-    font-family: 'Source Code Pro', Consolas, Monaco, 'Andale Mono', monospace;
-    font-size: 0.9em;
-    color: #000000;
-}
-
-/* Inline code */
-p code, li code {
-    background: #FFFFFF;
-    border: 2px solid #000000;
-    border-radius: 0px;
-    padding: 0.2em 0.4em;
-    color: #000000;
-    box-shadow: 2px 2px 0px #000000;
-}
-
-/* Add some spacing between code blocks and text */
-pre code {
-    padding: 0;
-    border: none;
-    background: none;
-    line-height: 1.5;
-    color: inherit;
-    box-shadow: none;
-}
 
