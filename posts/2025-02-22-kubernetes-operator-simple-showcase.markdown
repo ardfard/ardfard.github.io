@@ -1,4 +1,6 @@
-# Kubernetes Operator Simple Showcase
+---
+title: (WIP) Kubernetes Operator Simple Showcase
+---
 
 ## Introduction
 
