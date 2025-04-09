@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+    <title>Welcome - PostgreSQL from Zero</title>
+        <!-- Pure CSS CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tangerine:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/night-owl.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <!-- Pure CSS Grids Responsive CDN -->
+    <link rel="stylesheet" href="../css/default.css" />
+</head>
+<body>    
+
+<div id="layout">
+    <!-- menu toggle -->
+    <a href="#menu" id="menuLink" class="menu-link">
+        <!-- Hamburger icon -->
+         <span></span>
+    </a>
+
+    <div id="menu">
+        <div class="pure-menu">
+            <a href="../" class="menu-logo-link">
+                <div class="logo-container">
+                    <img src="../images/logo.svg?height=120&width=120" alt="Logo" class="logo">
+                    <div class="logo-text">Brothel <br /> for Slaking <br /> Intellectual Lusts</div>
+                </div>
+            </a>
+
+            <div class="social-links">
+                <a href="https://github.com/ardfard" class="social-link" target="_blank" rel="noopener">
+                    <i class="fa-brands fa-github"></i>
+                </a>
+                <a href="https://linkedin.com/in/ardin-fardiansyah-74500a56/" class="social-link" target="_blank" rel="noopener">
+                    <i class="fa-brands fa-linkedin"></i>
+                </a>
+                <a href="https://twitter.com/ardfard101" class="social-link" target="_blank" rel="noopener">
+                    <i class="fa-brands fa-x-twitter"></i>
+                </a>
+                <a href="https://bsky.app/profile/ardfard.bsky.social" class="social-link" target="_blank" rel="noopener">
+                    <i class="fa-solid fa-feather"></i>
+                </a>
+            </div>
+
+            <ul class="pure-menu-list">
+                <li class="pure-menu-item"><a href="../" class="pure-menu-link">Home</a> </li>
+                <li class="pure-menu-item"><a href="../about.html" class="pure-menu-link">About</a> </li>
+                <li class="pure-menu-item"><a href="../posts.html" class="pure-menu-link">Posts</a> </li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="main">    
+        <div class="header">
+            <h1>PostgreSQL from Zero</h1>
+        </div>
+        <div class="content">   
+            <div class="subheader">
+    <small>
+        <i>
+            Posted on April  9, 2025
+            
+        </i>
+    </small>
+</div>
+<article>
+    
+    <section>
+        <p>PostgreSQL is a powerful, open-source relational database system known for its stability, extensibility, and standards compliance. While most users install PostgreSQL via package managers or container images, building it from source unlocks a deeper level of control and understanding. Whether you’re a developer looking to experiment with PostgreSQL internals, apply patches, or enable non-default features, compiling from source gives you complete flexibility.</p>
+<p>This article walks you through the entire process—from fetching the PostgreSQL source code and configuring the build to initializing a database, managing roles, and customizing the server. Along the way, we’ll explore how to run and patch your own PostgreSQL instance, giving you the skills to hack on one of the most robust database systems available today.</p>
+<h2 id="getting-the-postgresql-source">1. Getting the PostgreSQL Source</h2>
+<p>To begin working with PostgreSQL from the ground up, the first step is obtaining the source code. Whether you’re building it for development, testing a patch, or learning internals, having the latest source is essential.</p>
+<h3 id="a.-cloning-the-official-repository">a. Cloning the Official Repository</h3>
+<p>PostgreSQL’s source code is hosted on <a href="https://github.com/postgres/postgres">GitHub</a> and its own Git server. You can clone it using:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone git://git.postgresql.org/git/postgresql.git</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> postgres</span></code></pre></div>
+<p>You might want to check out a specific stable release branch (e.g., <code>REL_16_STABLE</code>) or tag (e.g., <code>REL_16_2</code>):</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> checkout REL_16_STABLE</span></code></pre></div>
+<p>This will allow you to build from a tested and maintained version of the codebase.</p>
+<h3 id="b.-downloading-a-release-tarball-optional">b. Downloading a Release Tarball (Optional)</h3>
+<p>If you prefer not to use Git or want a specific version in archive format:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://ftp.postgresql.org/pub/source/v16.2/postgresql-16.2.tar.gz</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-xzf</span> postgresql-16.2.tar.gz</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> postgresql-16.2</span></code></pre></div>
+<p>Tarballs are a good option for production builds or offline installations.</p>
+<hr />
+<h2 id="configuring-postgresql">2. Configuring PostgreSQL</h2>
+<p>Before compiling, PostgreSQL needs to be configured based on your environment and desired features. This step detects available libraries and prepares the build system accordingly.</p>
+<h3 id="a.-installing-prerequisites">a. Installing Prerequisites</h3>
+<p>Install development tools and required libraries:</p>
+<p><strong>On Ubuntu/Debian:</strong></p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt update</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt install build-essential libreadline-dev zlib1g-dev flex bison</span></code></pre></div>
+<p><strong>On macOS (with Homebrew):</strong></p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install readline zlib bison</span></code></pre></div>
+<p>Use <code>which bison</code> to make sure it’s the Homebrew version (e.g., <code>/opt/homebrew/bin/bison</code>). Older versions shipped with macOS may cause issues.</p>
+<h3 id="b.-running-configure">b. Running <code>configure</code></h3>
+<p>To keep the source tree clean, create a separate build directory:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> build</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> build</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ex">../configure</span> <span class="at">--prefix</span><span class="op">=</span><span class="va">$HOME</span>/pgsql <span class="at">--enable-debug</span> <span class="at">--enable-cassert</span></span></code></pre></div>
+<p>Common configure flags:</p>
+<ul>
+<li><code>--prefix</code>: sets installation directory</li>
+<li><code>--enable-debug</code>: includes debug symbols</li>
+<li><code>--enable-cassert</code>: enables runtime assertions for development</li>
+</ul>
+<p>You can customize further using:</p>
+<ul>
+<li><code>--with-python</code>: enable PL/Python language</li>
+<li><code>--with-perl</code>: enable PL/Perl</li>
+<li><code>--with-tcl</code>: enable PL/Tcl</li>
+<li><code>--with-openssl</code>: enable SSL support</li>
+<li><code>--with-ldap</code>: enable LDAP authentication</li>
+<li><code>--with-llvm</code>: enable Just-In-Time (JIT) compilation</li>
+</ul>
+<p>To explore more options:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">../configure</span> <span class="at">--help</span></span></code></pre></div>
+<p>Then build and install:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> <span class="at">-j</span><span class="va">$(</span><span class="fu">nproc</span><span class="va">)</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> install</span></code></pre></div>
+<hr />
+<h2 id="initializing-the-database">3. Initializing the Database</h2>
+<p>Now that PostgreSQL is compiled and installed, it’s time to create the initial database cluster.</p>
+<h3 id="a.-set-environment-variables">a. Set Environment Variables</h3>
+<p>Ensure PostgreSQL binaries are in your path:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">PATH</span><span class="op">=</span><span class="va">$HOME</span>/pgsql/bin:<span class="va">$PATH</span></span></code></pre></div>
+<p>Create a directory for your data:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> <span class="va">$HOME</span>/pgdata</span></code></pre></div>
+<h3 id="b.-user-context-and-permissions">b. User Context and Permissions</h3>
+<p>PostgreSQL is designed to run under a dedicated system user (commonly <code>postgres</code>). This helps isolate permissions and avoid accidental damage.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> useradd <span class="at">-m</span> postgres</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> chown <span class="at">-R</span> postgres:postgres <span class="va">$HOME</span>/pgdata</span></code></pre></div>
+<p>Alternatively, you can run everything under your own username (e.g., <code>ardfard</code>), but ensure it has proper permissions.</p>
+<h3 id="c.-default-role-behavior">c. Default Role Behavior</h3>
+<p>When you initialize the database using <code>initdb</code>, it creates a default superuser role named after the OS user who ran the command. If you’re <code>ardfard</code>, then <code>ardfard</code> will be the superuser.</p>
+<p>To create a different superuser (e.g., <code>postgres</code>):</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">initdb</span> <span class="at">-D</span> <span class="va">$HOME</span>/pgdata <span class="at">--username</span><span class="op">=</span>postgres</span></code></pre></div>
+<p>This avoids confusion when connecting later using tools like <code>psql</code>.</p>
+<h3 id="d.-running-initdb">d. Running <code>initdb</code></h3>
+<p>Initialize the database cluster:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">initdb</span> <span class="at">-D</span> <span class="va">$HOME</span>/pgdata</span></code></pre></div>
+<p>You can customize locale, encoding, auth method:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">initdb</span> <span class="at">-D</span> <span class="va">$HOME</span>/pgdata <span class="at">--locale</span><span class="op">=</span>en_US.UTF-8 <span class="at">--encoding</span><span class="op">=</span>UTF8 <span class="at">--auth</span><span class="op">=</span>md5</span></code></pre></div>
+<h3 id="e.-starting-the-postgresql-server">e. Starting the PostgreSQL Server</h3>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pg_ctl</span> <span class="at">-D</span> <span class="va">$HOME</span>/pgdata <span class="at">-l</span> logfile start</span></code></pre></div>
+<p>The <code>pg_ctl</code> utility handles server management: start, stop, restart, and status checks.</p>
+<h3 id="f.-connecting-to-postgresql">f. Connecting to PostgreSQL</h3>
+<p>By default, PostgreSQL attempts to connect using the same OS username for both role and database. If these don’t exist, you’ll see:</p>
+<pre><code>psql: error: FATAL: role &quot;ardfard&quot; does not exist</code></pre>
+<p>Instead, connect to the default database and create what you need:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ex">psql</span> <span class="at">-d</span> postgres</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="ex">--</span> Inside psql:</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="ex">CREATE</span> ROLE ardfard WITH LOGIN SUPERUSER<span class="kw">;</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="ex">CREATE</span> DATABASE ardfard OWNER ardfard<span class="kw">;</span></span></code></pre></div>
+<hr />
+<h2 id="starting-and-stopping-the-server">4. Starting and Stopping the Server</h2>
+<p>Understanding server lifecycle management is critical for both development and production.</p>
+<h3 id="a.-starting-the-server">a. Starting the Server</h3>
+<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pg_ctl</span> <span class="at">-D</span> <span class="va">$HOME</span>/pgdata <span class="at">-l</span> logfile start</span></code></pre></div>
+<p>Ensure the log file is writable. You can also use <code>-o</code> to pass additional options.</p>
+<h3 id="b.-stopping-the-server">b. Stopping the Server</h3>
+<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pg_ctl</span> <span class="at">-D</span> <span class="va">$HOME</span>/pgdata stop <span class="at">-m</span> fast</span></code></pre></div>
+<p>Modes:</p>
+<ul>
+<li><code>smart</code>: Waits for clients to disconnect (default)</li>
+<li><code>fast</code>: Immediate disconnect but graceful shutdown</li>
+<li><code>immediate</code>: Abrupt shutdown without cleanup (not recommended unless debugging)</li>
+</ul>
+<h3 id="c.-restarting-the-server">c. Restarting the Server</h3>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pg_ctl</span> <span class="at">-D</span> <span class="va">$HOME</span>/pgdata restart</span></code></pre></div>
+<p>This applies config changes without needing full shutdown cycles.</p>
+<h3 id="d.-checking-server-status">d. Checking Server Status</h3>
+<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pg_ctl</span> <span class="at">-D</span> <span class="va">$HOME</span>/pgdata status</span></code></pre></div>
+<p>Shows PID and whether the server is running.</p>
+<hr />
+<h2 id="creating-users-and-databases">5. Creating Users and Databases</h2>
+<p>Once your server is operational, you’ll want to create specific roles and databases for applications or development workflows.</p>
+<h3 id="a.-creating-a-role">a. Creating a Role</h3>
+<p>Log in to the main cluster:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="ex">psql</span> <span class="at">-U</span> ardfard <span class="at">-d</span> postgres</span></code></pre></div>
+<p>Create a user:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">ROLE</span> devuser <span class="kw">WITH</span> LOGIN <span class="kw">PASSWORD</span> <span class="st">'securepassword'</span>;</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> <span class="kw">ROLE</span> devuser <span class="kw">WITH</span> CREATEDB CREATEROLE;</span></code></pre></div>
+<p>You can grant <code>SUPERUSER</code> as needed:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> <span class="kw">ROLE</span> devuser <span class="kw">WITH</span> SUPERUSER;</span></code></pre></div>
+<h3 id="b.-creating-a-database">b. Creating a Database</h3>
+<div class="sourceCode" id="cb25"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">DATABASE</span> devdb OWNER devuser;</span></code></pre></div>
+<p>Connect with:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="ex">psql</span> <span class="at">-U</span> devuser <span class="at">-d</span> devdb</span></code></pre></div>
+<p>You can also use flags like <code>ENCODING</code>, <code>LC_COLLATE</code>, and <code>TEMPLATE</code>.</p>
+<h3 id="c.-listing-resources">c. Listing Resources</h3>
+<div class="sourceCode" id="cb27"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>\du  <span class="co">-- roles</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>\l   <span class="co">-- databases</span></span></code></pre></div>
+<hr />
+<h2 id="running-custom-patches-or-modifying-source">6. Running Custom Patches or Modifying Source</h2>
+<p>PostgreSQL is renowned for its extensibility. You can patch internals, add features, or test fixes.</p>
+<h3 id="a.-applying-a-patch">a. Applying a Patch</h3>
+<p>Use standard patch tools:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">patch</span> <span class="at">-p1</span> <span class="op">&lt;</span> /path/to/fix.diff</span></code></pre></div>
+<p>Or with Git:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> apply /path/to/patch.diff</span></code></pre></div>
+<p>After patching:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./configure</span> <span class="at">--prefix</span><span class="op">=</span><span class="va">$HOME</span>/pgsql <span class="at">--enable-debug</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> <span class="at">-j</span><span class="va">$(</span><span class="fu">nproc</span><span class="va">)</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> install</span></code></pre></div>
+<h3 id="b.-exploring-source-internals">b. Exploring Source Internals</h3>
+<p>PostgreSQL is modular. Explore areas like:</p>
+<ul>
+<li><code>src/backend/</code>: main logic (executor, parser, planner)</li>
+<li><code>src/include/</code>: shared headers</li>
+<li><code>src/bin/</code>: command-line tools</li>
+<li><code>src/interfaces/</code>: libraries like libpq</li>
+<li><code>src/common/</code>: utilities used by multiple binaries</li>
+</ul>
+<p>Want to modify expression evaluation? See <code>src/backend/executor/</code>.</p>
+<h3 id="c.-adding-new-functions">c. Adding New Functions</h3>
+<p>To add a built-in function:</p>
+<ol type="1">
+<li>Edit or add a <code>.c</code> file under <code>src/backend/utils/adt/</code></li>
+<li>Define it in <code>pg_proc.dat</code></li>
+<li>Run:</li>
+</ol>
+<div class="sourceCode" id="cb31"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> <span class="at">-C</span> src/backend/utils/adt</span></code></pre></div>
+<p>Then:</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">FUNCTION</span> my_func(<span class="op">..</span>.) RETURNS <span class="op">..</span>. <span class="kw">AS</span> <span class="st">'MODULE_PATHNAME'</span>, <span class="st">'my_func'</span> LANGUAGE C;</span></code></pre></div>
+<h2 id="closing">Closing</h2>
+<p>Building PostgreSQL from source opens up a world of possibilities for developers, researchers, and system architects who want to gain a deeper understanding of one of the world’s most powerful relational databases. Whether you’re experimenting with core internals, testing patches, or tailoring the database to specific needs, compiling from source gives you complete control over the PostgreSQL runtime and feature set.</p>
+<p>PostgreSQL is not just a database, it’s also a robust platform built for innovation. Whether you’re extending it for your application’s needs or contributing back to the community, compiling from source is a great first step in mastering its architecture.</p>
+<p>Happy hacking!</p>
+    </section>
+</article>
+
+        </div>
+        <div id="footer">
+            <p>Powered by <a href="http://jaspervdj.be/hakyll">Hakyll</a></p>
+        </div>
+    </div>
+</div>
+
+<script src="../js/ui.js"></script>
+</body>
+</html>
