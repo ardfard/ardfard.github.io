@@ -57,7 +57,7 @@ Add transition to containers so they can push in and out.
     margin: 1em auto;
     min-height: 100vh;
     display: flex;
-    max-width: 1000px;
+    max-width: 1080px;
     width: 100%;
 }
 
@@ -66,7 +66,7 @@ Add transition to containers so they can push in and out.
     width: 150px;
     position: fixed;
     top: 1em;
-    left: max(1em, calc((100% - 1000px) / 2 + 1em));
+    left: max(1em, calc((100% - 1080px) / 2 + 1em));
     height: 580px;
     z-index: 1000;
     background: #6495ED;
@@ -113,7 +113,7 @@ Add transition to containers so they can push in and out.
 
 .content {
     margin-left: 30px;
-    max-width: 70ch;
+    max-width: 80ch;
     line-height: 1.6em;
 }
 
