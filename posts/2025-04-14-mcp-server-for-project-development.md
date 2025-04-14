@@ -74,8 +74,9 @@ So I just need to install Node.js from the official website and add it to my PAT
 After adding Node.js to my PATH, I need to restart the Cursor IDE.
 After restarting the Cursor IDE, I try to connect to the database again. This time it works. Now I can use the MCP server to interact with the database.
 
-![Cursor MCP Server](../images/cursor-mcp-server.png)
+![Cursor MCP Server](../images/cursor-mcp-server.png){width=600px}
 
 You can try a more complex prompt like:
+
 - "What is the relation between the table `users` and `posts`?"
 - "Explain the flow of <some function> in <some file> with the changes in the table <some table>."
