@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+    <title>Welcome - A Deep Dive into Playwright: Lifecycle, Fixtures, and Test Architecture</title>
+        <!-- Pure CSS CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tangerine:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/night-owl.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <!-- Pure CSS Grids Responsive CDN -->
+    <link rel="stylesheet" href="../css/default.css" />
+</head>
+<body>    
+
+<div id="layout">
+    <!-- menu toggle -->
+    <a href="#menu" id="menuLink" class="menu-link">
+        <!-- Hamburger icon -->
+         <span></span>
+    </a>
+
+    <div id="menu">
+        <div class="pure-menu">
+            <a href="../" class="menu-logo-link">
+                <div class="logo-container">
+                    <img src="../images/logo.svg?height=120&width=120" alt="Logo" class="logo">
+                    <div class="logo-text">Brothel <br /> for Slaking <br /> Intellectual Lusts</div>
+                </div>
+            </a>
+
+            <div class="social-links">
+                <a href="https://github.com/ardfard" class="social-link" target="_blank" rel="noopener">
+                    <i class="fa-brands fa-github"></i>
+                </a>
+                <a href="https://linkedin.com/in/ardin-fardiansyah-74500a56/" class="social-link" target="_blank" rel="noopener">
+                    <i class="fa-brands fa-linkedin"></i>
+                </a>
+                <a href="https://twitter.com/ardfard101" class="social-link" target="_blank" rel="noopener">
+                    <i class="fa-brands fa-x-twitter"></i>
+                </a>
+                <a href="https://bsky.app/profile/ardfard.bsky.social" class="social-link" target="_blank" rel="noopener">
+                    <i class="fa-solid fa-feather"></i>
+                </a>
+            </div>
+
+            <ul class="pure-menu-list">
+                <li class="pure-menu-item"><a href="../" class="pure-menu-link">Home</a> </li>
+                <li class="pure-menu-item"><a href="../about.html" class="pure-menu-link">About</a> </li>
+                <li class="pure-menu-item"><a href="../posts.html" class="pure-menu-link">Posts</a> </li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="main">    
+        <div class="header">
+            <h1>A Deep Dive into Playwright: Lifecycle, Fixtures, and Test Architecture</h1>
+        </div>
+        <div class="content">   
+            <div class="subheader">
+    <small>
+        <i>
+            Posted on January 23, 2026
+            
+                by ardfard
+            
+        </i>
+    </small>
+</div>
+<article>
+    
+    <section>
+        <h1 id="a-deep-dive-into-playwright-lifecycle-fixtures-and-test-architecture">A Deep Dive into Playwright: Lifecycle, Fixtures, and Test Architecture</h1>
+<p>In building the <a href="https://kanjinomic.com">Kanjinomic</a> Japanese vocabulary learning platform, I’ve implemented an End-to-End (E2E) testing suite using Playwright. This post documents the architectural decisions, the “magic” behind Playwright’s fixture system, and the lifecycle of a test run.</p>
+<h2 id="the-architecture-of-a-playwright-project">1. The Architecture of a Playwright Project</h2>
+<p>Unlike a simple script folder, a scalable Playwright setup requires structure. Here is the anatomy of our <code>tests/e2e</code> directory:</p>
+<pre class="text"><code>tests/e2e/
+├── fixtures.ts          # The Engine Room: Custom fixture definitions
+├── playwright.spec.ts   # The Specs: Actual test scenarios
+└── README.md            # Documentation</code></pre>
+<h3 id="configuration-playwright.config.ts">Configuration (<code>playwright.config.ts</code>)</h3>
+<p>The entry point is <code>playwright.config.ts</code>. It acts as the command center, telling Playwright:
+1. <strong>Where to look</strong>: <code>testDir: './tests/e2e'</code>
+2. <strong>How to run</strong>: <code>fullyParallel: true</code>
+3. <strong>Environment</strong>: <code>webServer</code> config to spin up the backend automatically.</p>
+<h2 id="test-discovery-how-playwright-finds-code">2. Test Discovery: How Playwright “Finds” Code</h2>
+<p>When you run <code>bunx playwright test</code>, Playwright doesn’t just run every file. It follows a specific discovery process:</p>
+<ol type="1">
+<li><strong>Directory Scanning</strong>: It looks inside <code>testDir</code> (configured as <code>./tests/e2e</code>).</li>
+<li><strong>Pattern Matching</strong>: It looks for files ending in <code>.spec.ts</code>, <code>.test.ts</code>, etc.
+<ul>
+<li><em>Note</em>: This is why <code>fixtures.ts</code> is ignored—it doesn’t match the pattern.</li>
+</ul></li>
+<li><strong>Parsing</strong>: It parses matching files for <code>test()</code> and <code>test.describe()</code> blocks.</li>
+</ol>
+<p>This separation allows us to keep helper logic (<code>fixtures.ts</code>) right next to the tests without Playwright trying to execute it as a test file.</p>
+<h3 id="visual-discovery-flow">Visual Discovery Flow</h3>
+<pre><code>┌─────────────────────────────────────────┐
+│ 1. Read playwright.config.ts            │
+│    testDir: './tests/e2e'               │
+└─────────────────────────────────────────┘
+              │
+              ▼
+┌─────────────────────────────────────────┐
+│ 2. Scan directory: tests/e2e/           │
+│    ├── fixtures.ts                      │
+│    ├── playwright.spec.ts  ← ✅ MATCH   │
+│    └── README.md                        │
+└─────────────────────────────────────────┘
+              │
+              ▼
+┌─────────────────────────────────────────┐
+│ 3. Parse playwright.spec.ts             │
+│    - Find test.describe() blocks        │
+│    - Find test() calls                  │
+│    - Count: 2 suites, ~10 tests         │
+└─────────────────────────────────────────┘
+              │
+              ▼
+┌─────────────────────────────────────────┐
+│ 4. Execute tests                        │
+│    - Run each test() function           │
+│    - Use fixtures from fixtures.ts      │
+└─────────────────────────────────────────┘</code></pre>
+<h2 id="the-power-of-fixtures">3. The Power of Fixtures</h2>
+<p>The most confusing yet powerful part of Playwright is <strong>Fixtures</strong>. In traditional testing, you might have <code>beforeEach</code> and <code>afterEach</code> hooks cluttering your test files. Playwright replaces this with a dependency injection system.</p>
+<h3 id="the-base.extend-pattern">The <code>base.extend</code> Pattern</h3>
+<p>We extend the default <code>test</code> object.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { test <span class="im">as</span> base } <span class="im">from</span> <span class="st">'@playwright/test'</span><span class="op">;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">// We define a type for our custom world</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Fixtures <span class="op">=</span> {</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  dbPool<span class="op">:</span> pg<span class="op">.</span><span class="at">Pool</span><span class="op">;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  testUser<span class="op">:</span> TestUser<span class="op">;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  authenticatedPage<span class="op">:</span> Page<span class="op">;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co">// We create a NEW test object with our fixtures baked in</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">const</span> test <span class="op">=</span> base<span class="op">.</span><span class="fu">extend</span><span class="op">&lt;</span>Fixtures<span class="op">&gt;</span>({</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Fixture definitions go here...</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<p>This pattern means that any test importing our custom <code>test</code> object automatically has access to our custom environment, with full TypeScript support.</p>
+<h3 id="visual-flow-of-base.extend">Visual Flow of <code>base.extend()</code></h3>
+<pre><code>┌─────────────────────────────────────────┐
+│ @playwright/test                        │
+│ export const test = { ... }             │
+│   - page fixture                        │
+│   - context fixture                     │
+│   - browser fixture                     │
+│   - etc.                                │
+└─────────────────────────────────────────┘
+              │
+              │ import { test as base }
+              ▼
+┌─────────────────────────────────────────┐
+│ fixtures.ts                             │
+│                                         │
+│ base.extend&lt;Fixtures&gt;({                 │
+│   dbPool: ...                           │
+│   testUser: ...                         │
+│   authenticatedPage: ...                │
+│ })                                      │
+│                                         │
+│ Result: NEW test object with:           │
+│   ✅ All base fixtures (page, etc.)     │
+│   ✅ Your custom fixtures               │
+└─────────────────────────────────────────┘
+              │
+              │ export const test
+              ▼
+┌─────────────────────────────────────────┐
+│ playwright.spec.ts                      │
+│ import { test } from './fixtures'       │
+│                                         │
+│ test('My test', async ({                │
+│   page,              ← from base        │
+│   testUser,          ← from extend      │
+│   authenticatedPage  ← from extend      │
+│ }) =&gt; { ... })                          │
+└─────────────────────────────────────────┘</code></pre>
+<h2 id="the-test-lifecycle-a-timeline">4. The Test Lifecycle: A Timeline</h2>
+<p>Understanding the order of operations is critical for debugging. Here is the lifecycle of a single test execution:</p>
+<h3 id="phase-1-global-setup">Phase 1: Global Setup</h3>
+<p>Before any test file is touched, Playwright starts the <code>webServer</code> (our Rust backend). This happens once.</p>
+<h3 id="phase-2-dependency-resolution-the-graph">Phase 2: Dependency Resolution (The Graph)</h3>
+<p>For a test requesting <code>({ authenticatedPage })</code>, Playwright builds a graph:</p>
+<pre><code>authenticatedPage depends on:
+  ├── page (built-in fixture)
+  ├── testUser (custom fixture)
+  └── dbPool (custom fixture)
+
+testUser depends on:
+  └── dbPool (custom fixture)
+
+testSentence depends on:
+  └── dbPool (custom fixture)</code></pre>
+<p><strong>Resolution Order (Bottom-Up):</strong>
+1. <code>dbPool</code> (no dependencies)
+2. <code>testUser</code> (needs <code>dbPool</code>)
+3. <code>testSentence</code> (needs <code>dbPool</code>)
+4. <code>page</code> (built-in, created automatically)
+5. <code>authenticatedPage</code> (needs <code>page</code>, <code>testUser</code>, <code>dbPool</code>)</p>
+<h3 id="phase-3-setup-bottom-up">Phase 3: Setup (Bottom-Up)</h3>
+<p>Fixtures are initialized in dependency order:
+1. <strong><code>dbPool</code></strong>: Connects to Postgres.
+2. <strong><code>testUser</code></strong>: Uses <code>dbPool</code> to insert a user via API/DB.
+3. <strong><code>page</code></strong>: Playwright launches the browser context.
+4. <strong><code>authenticatedPage</code></strong>: Logs the user in and navigates to the dashboard.</p>
+<h3 id="phase-4-execution">Phase 4: Execution</h3>
+<p>The test function finally runs.</p>
+<h3 id="phase-5-teardown-top-down-lifo">Phase 5: Teardown (Top-Down / LIFO)</h3>
+<p>Once the test finishes (pass or fail), fixtures are torn down in reverse order:
+1. <strong><code>authenticatedPage</code></strong>: (Cleanup logic, if any).
+2. <strong><code>page</code></strong>: Browser context closes.
+3. <strong><code>testUser</code></strong>: User data is deleted from the DB.
+4. <strong><code>dbPool</code></strong>: Database connection closes.</p>
+<h3 id="complete-lifecycle-timeline">Complete Lifecycle Timeline</h3>
+<pre><code>Time →
+│
+├─ [Global Setup]
+│  └─ webServer: cargo run starts
+│
+├─ [Test 1 Starts]
+│  ├─ dbPool setup
+│  ├─ testUser setup
+│  ├─ page setup
+│  ├─ authenticatedPage setup
+│  │
+│  ├─ [TEST RUNS]
+│  │  └─ Your test code executes
+│  │
+│  ├─ authenticatedPage teardown
+│  ├─ page teardown
+│  ├─ testUser teardown
+│  └─ dbPool teardown
+│
+├─ [Test 2 Starts]
+│  ├─ dbPool setup (NEW connection)
+│  ├─ testUser setup (NEW user)
+│  ├─ page setup (NEW page)
+│  ├─ authenticatedPage setup
+│  │
+│  ├─ [TEST RUNS]
+│  │
+│  └─ [Teardown in reverse]
+│
+└─ [All Tests Complete]
+   └─ webServer stops (if not reused)</code></pre>
+<h3 id="detailed-fixture-execution-flow">Detailed Fixture Execution Flow</h3>
+<p>For a test like <code>test('My test', async ({ authenticatedPage, testSentence }) =&gt; { ... })</code>:</p>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
+│ 1. Playwright resolves dependencies                         │
+└─────────────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 2. Create dbPool fixture                                    │
+│    dbPool: async ({}, use) =&gt; {                             │
+│      const pool = new pg.Pool(...);  ← SETUP                │
+│      await use(pool);          ← Test hasn't started yet!   │
+│      await pool.end();         ← TEARDOWN (after test)      │
+│    }                                                        │
+└─────────────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 3. Create testUser fixture (needs dbPool)                   │
+│    testUser: async ({ dbPool }, use) =&gt; {                   │
+│      const user = await createTestUser(dbPool); ← SETUP     │
+│      await use(user);          ← Test hasn't started yet!   │
+│      await cleanupUser(...);   ← TEARDOWN (after test)      │
+│    }                                                        │
+└─────────────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 4. Create page fixture (built-in, automatic)                │
+│    - Opens browser context                                  │
+│    - Creates new page                                       │
+└─────────────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────-┐
+│ 5. Create authenticatedPage fixture                          │
+│    authenticatedPage: async ({ page, testUser, dbPool }) =&gt; {│
+│                                                              │
+│      // SETUP PHASE (runs BEFORE test)                       │
+│      const sentences = await createTestSentences(...);       │
+│      await loginUser(page, testUser, baseUrl);               │
+│                                                              │
+│      await use(page);  ← TEST RUNS HERE                      │
+│                                                              │
+│      // TEARDOWN PHASE (runs AFTER test)                     │
+│      for (const sentence of sentences) {                     │
+│        await cleanupSentence(...);                           │
+│      }                                                       │
+│    }                                                         │
+└─────────────────────────────────────────────────────────────-┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 6. Test executes                                            │
+│    await authenticatedPage.goto(...);                       │
+│    // ... test code ...                                     │
+└─────────────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 7. Teardown in REVERSE order (LIFO - Last In First Out)     │
+│    - authenticatedPage cleanup (delete sentences)           │
+│    - page cleanup (close browser)                           │
+│    - testUser cleanup (delete user)                         │
+│    - dbPool cleanup (close connection)                      │
+└─────────────────────────────────────────────────────────────┘</code></pre>
+<h2 id="the-magic-of-use">5. The Magic of <code>use()</code></h2>
+<p>In a fixture, <code>use</code> is not just a return statement. It is a <strong>callback that pauses execution</strong>.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>testUser<span class="op">:</span> <span class="kw">async</span> ({ dbPool }<span class="op">,</span> use) <span class="kw">=&gt;</span> {</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- SETUP PHASE ---</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'Creating user...'</span>)<span class="op">;</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> user <span class="op">=</span> <span class="cf">await</span> <span class="fu">createTestUser</span>(dbPool)<span class="op">;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- HANDOFF ---</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">// This passes 'user' to the test and PAUSES this function</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">use</span>(user)<span class="op">;</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- TEARDOWN PHASE ---</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">// This runs ONLY after the test completes</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'Cleaning up user...'</span>)<span class="op">;</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">cleanupUser</span>(dbPool<span class="op">,</span> user<span class="op">.</span><span class="at">id</span>)<span class="op">;</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span></span></code></pre></div>
+<p>This “Setup -&gt; Yield -&gt; Teardown” pattern within a single function ensures that cleanup logic is co-located with setup logic, preventing data leaks and “flaky” tests.</p>
+<h3 id="visual-execution-timeline-of-use">Visual Execution Timeline of <code>use()</code></h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Your fixture definition</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>testUser<span class="op">:</span> <span class="kw">async</span> ({ dbPool }<span class="op">,</span> use) <span class="kw">=&gt;</span> {</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'1. Setup: Creating user...'</span>)<span class="op">;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> user <span class="op">=</span> <span class="cf">await</span> <span class="fu">createTestUser</span>(dbPool<span class="op">,</span> baseUrl)<span class="op">;</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'2. User created:'</span><span class="op">,</span> user<span class="op">.</span><span class="at">email</span>)<span class="op">;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'3. About to call use()...'</span>)<span class="op">;</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">use</span>(user)<span class="op">;</span>  <span class="co">// ← MAGIC HAPPENS HERE</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'4. use() returned, test is done!'</span>)<span class="op">;</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'5. Teardown: Cleaning up...'</span>)<span class="op">;</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">cleanupUser</span>(dbPool<span class="op">,</span> user<span class="op">.</span><span class="at">id</span>)<span class="op">;</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'6. Cleanup complete'</span>)<span class="op">;</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="co">// Your test</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="fu">test</span>(<span class="st">'My test'</span><span class="op">,</span> <span class="kw">async</span> ({ testUser }) <span class="kw">=&gt;</span> {</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'TEST: Got user:'</span><span class="op">,</span> testUser<span class="op">.</span><span class="at">email</span>)<span class="op">;</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... test code ...</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'TEST: Finished'</span>)<span class="op">;</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<p><strong>Execution Order:</strong></p>
+<pre><code>1. Setup: Creating user...
+2. User created: test_abc123@example.com
+3. About to call use()...
+   ┌─────────────────────────────────┐
+   │ TEST: Got user: test_abc123...  │ ← Test runs here
+   │ ... test code executes ...      │
+   │ TEST: Finished                  │
+   └─────────────────────────────────┘
+4. use() returned, test is done!
+5. Teardown: Cleaning up...
+6. Cleanup complete</code></pre>
+<h3 id="real-example-complete-fixture-trace">Real Example: Complete Fixture Trace</h3>
+<p>When you write:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">test</span>(<span class="st">'Submitting answer shows feedback'</span><span class="op">,</span> <span class="kw">async</span> ({ authenticatedPage<span class="op">,</span> testSentence }) <span class="kw">=&gt;</span> {</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> authenticatedPage<span class="op">.</span><span class="fu">goto</span>(<span class="vs">`</span><span class="sc">${</span>BASE_URL<span class="sc">}</span><span class="vs">/learn`</span>)<span class="op">;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... test code</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<p><strong>What actually happens:</strong></p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 1. dbPool fixture starts</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> pool <span class="op">=</span> <span class="kw">new</span> pg<span class="op">.</span><span class="fu">Pool</span>({ connectionString<span class="op">:</span> DATABASE_URL })<span class="op">;</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">// (pauses at await use(pool))</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co">// 2. testUser fixture starts (needs dbPool)</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> user <span class="op">=</span> <span class="cf">await</span> <span class="fu">createTestUser</span>(dbPool<span class="op">,</span> baseUrl)<span class="op">;</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co">// (pauses at await use(user))</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="co">// 3. testSentence fixture starts (needs dbPool)</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> sentence <span class="op">=</span> <span class="cf">await</span> <span class="fu">createTestSentence</span>(dbPool)<span class="op">;</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co">// (pauses at await use(sentence))</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="co">// 4. page fixture starts (built-in)</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="co">// Browser opens, page created</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="co">// (pauses at await use(page))</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="co">// 5. authenticatedPage fixture starts</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> sentences <span class="op">=</span> <span class="cf">await</span> <span class="fu">createTestSentences</span>(dbPool<span class="op">,</span> <span class="dv">3</span><span class="op">,</span> <span class="st">'n5'</span>)<span class="op">;</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> <span class="fu">loginUser</span>(page<span class="op">,</span> testUser<span class="op">,</span> baseUrl)<span class="op">;</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a><span class="co">// (pauses at await use(page))</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="co">// 6. NOW YOUR </span><span class="al">TEST</span><span class="co"> RUNS</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> authenticatedPage<span class="op">.</span><span class="fu">goto</span>(<span class="vs">`</span><span class="sc">${</span>BASE_URL<span class="sc">}</span><span class="vs">/learn`</span>)<span class="op">;</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a><span class="co">// ... rest of test code ...</span></span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a><span class="co">// 7. Test finishes, teardown starts (REVERSE ORDER)</span></span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a><span class="co">// 7a. authenticatedPage teardown</span></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (<span class="kw">const</span> sentence <span class="kw">of</span> sentences) {</span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">cleanupSentence</span>(dbPool<span class="op">,</span> sentence<span class="op">.</span><span class="at">id</span>)<span class="op">;</span></span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a><span class="co">// 7b. page teardown (browser closes)</span></span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a><span class="co">// 7c. testSentence teardown</span></span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> <span class="fu">cleanupSentence</span>(dbPool<span class="op">,</span> sentence<span class="op">.</span><span class="at">id</span>)<span class="op">;</span></span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a><span class="co">// 7d. testUser teardown</span></span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> <span class="fu">cleanupUser</span>(dbPool<span class="op">,</span> user<span class="op">.</span><span class="at">id</span>)<span class="op">;</span></span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a><span class="co">// 7e. dbPool teardown</span></span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> pool<span class="op">.</span><span class="fu">end</span>()<span class="op">;</span></span></code></pre></div>
+<h2 id="integration-vs.-regression">6. Integration vs. Regression</h2>
+<p>We use Playwright for both:</p>
+<ul>
+<li><strong>Integration Testing</strong>: Our tests verify the <em>integration</em> between the frontend (HTMX), the backend (Axum), and the database (Postgres). For example, creating a user verifies the entire stack works.</li>
+<li><strong>Regression Testing</strong>: By running these tests on every commit, we ensure that new changes haven’t broken existing features. The <code>User can register</code> test is a regression test that guards the critical registration path.</li>
+</ul>
+<h3 id="the-test-pyramid">The Test Pyramid</h3>
+<pre><code>        /\
+       /E2E\          ← E2E tests (playwright.spec.ts)
+      /------\
+     /Integration\    ← Integration tests (integration_handlers.rs)
+    /------------\
+   /    Unit      \   ← Unit tests (in src/ modules)
+  /----------------\</code></pre>
+<p><strong>Test Types:</strong>
+- <strong>Unit Tests</strong>: Fast, isolated (e.g., scoring function)
+- <strong>Integration Tests</strong>: Medium speed, test interactions (e.g., API + DB)
+- <strong>E2E Tests</strong>: Slower, full user journey (e.g., Playwright)</p>
+<h3 id="how-tests-overlap">How Tests Overlap</h3>
+<p>A test can be <strong>both</strong> integration and regression:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">// From your state_consistency.rs</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span><span class="pp">tokio::</span>test<span class="at">]</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">fn</span> test_submission_creates_consistent_state() <span class="op">{</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// This is BOTH:</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 1. Integration test: Tests handler + service + DB + transactions</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 2. Regression test: Ensures state consistency doesn't break after changes</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Test that submission updates:</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">// - submissions table</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">// - user_progress table  </span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// - daily_stats table</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">// All in one transaction (integration)</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">// And this should never break (regression)</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="common-folder-organization-patterns">7. Common Folder Organization Patterns</h2>
+<h3 id="pattern-1-feature-based-recommended-for-larger-projects">Pattern 1: Feature-Based (Recommended for Larger Projects)</h3>
+<pre><code>tests/
+├── e2e/
+│   ├── auth/
+│   │   ├── login.spec.ts
+│   │   ├── register.spec.ts
+│   │   └── fixtures.ts
+│   ├── learning/
+│   │   ├── sentence.spec.ts
+│   │   ├── submission.spec.ts
+│   │   └── fixtures.ts
+│   ├── shared/
+│   │   ├── fixtures.ts
+│   │   └── helpers.ts
+│   └── setup/
+│       └── global-setup.ts</code></pre>
+<h3 id="pattern-2-type-based">Pattern 2: Type-Based</h3>
+<pre><code>tests/
+├── e2e/
+│   ├── fixtures.ts        # All fixtures
+│   ├── playwright.spec.ts # All tests
+│   └── helpers.ts         # Utility functions</code></pre>
+<h3 id="pattern-3-hybrid-scales-well">Pattern 3: Hybrid (Scales Well)</h3>
+<pre><code>tests/
+├── e2e/
+│   ├── fixtures/
+│   │   ├── auth.fixtures.ts
+│   │   ├── learning.fixtures.ts
+│   │   └── index.ts
+│   ├── specs/
+│   │   ├── auth.spec.ts
+│   │   └── learning.spec.ts
+│   ├── helpers/
+│   │   ├── api.helpers.ts
+│   │   └── db.helpers.ts
+│   └── setup/
+│       └── global-setup.ts</code></pre>
+<h2 id="key-takeaways-summary">8. Key Takeaways Summary</h2>
+<h3 id="understanding-test-discovery">Understanding Test Discovery</h3>
+<p>Playwright discovers tests by:
+1. Reading <code>testDir</code> from config (<code>./tests/e2e</code>)
+2. Finding files matching <code>*.spec.*</code> or <code>*.test.*</code> patterns
+3. Parsing those files for <code>test()</code> and <code>test.describe()</code> calls
+4. Executing the discovered tests</p>
+<p>In our case:
+- Config: <code>testDir: './tests/e2e'</code>
+- Test file: <code>playwright.spec.ts</code> (matches pattern)
+- Tests found: All <code>test()</code> calls inside <code>test.describe()</code> blocks
+- Helper file: <code>fixtures.ts</code> (ignored, but imported by tests)</p>
+<h3 id="understanding-fixture-lifecycle">Understanding Fixture Lifecycle</h3>
+<ol type="1">
+<li><strong><code>await use()</code> pauses the fixture</strong> and runs the test</li>
+<li><strong>Dependencies are resolved bottom-up</strong> (dependencies first)</li>
+<li><strong>Teardown runs in reverse order</strong> (LIFO)</li>
+<li><strong>Each test gets fresh fixture instances</strong> (test-scoped)</li>
+<li><strong>Global setup (webServer) runs once</strong> before all tests</li>
+</ol>
+<h3 id="understanding-base.extend">Understanding <code>base.extend()</code></h3>
+<ul>
+<li><code>base.extend()</code> creates a new test object that combines Playwright’s built-in fixtures with your custom fixtures</li>
+<li>It’s executed when the test file imports <code>test</code> from <code>fixtures.ts</code></li>
+<li>It enables using custom fixtures like <code>testUser</code>, <code>dbPool</code>, and <code>authenticatedPage</code> in your tests</li>
+<li>The <code>&lt;Fixtures&gt;</code> type provides TypeScript support for your custom fixtures</li>
+</ul>
+<p>Without <code>base.extend()</code>, you’d only have Playwright’s built-in fixtures. With it, you get both built-in and custom fixtures in one <code>test</code> object.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>By leveraging Playwright’s fixture system, we’ve created a test suite that is:
+1. <strong>Isolated</strong>: Every test gets a fresh user and database state.
+2. <strong>Clean</strong>: No global setup/teardown mess in spec files.
+3. <strong>Typed</strong>: TypeScript knows exactly what data is available in each test.
+4. <strong>Maintainable</strong>: Fixtures are reusable and composable.
+5. <strong>Reliable</strong>: Automatic cleanup prevents test pollution.</p>
+<p>This architecture provides the confidence needed to iterate quickly on the Kanjinomic platform without fear of breaking critical user flows.</p>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><a href="https://playwright.dev/docs/test-fixtures">Playwright Fixtures Documentation</a></li>
+<li><a href="https://playwright.dev/docs/test-configuration">Playwright Test Configuration</a></li>
+<li><a href="https://playwright.dev/docs/test-fixtures#creating-a-fixture">Custom Fixtures Guide</a></li>
+<li><a href="https://playwright.dev/docs/test-intro#writing-tests">Test Discovery Patterns</a></li>
+</ul>
+    </section>
+</article>
+
+        </div>
+        <div id="footer">
+            <p>Powered by <a href="http://jaspervdj.be/hakyll">Hakyll</a></p>
+        </div>
+    </div>
+</div>
+
+<script src="../js/ui.js"></script>
+</body>
+</html>

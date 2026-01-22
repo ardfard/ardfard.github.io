@@ -1,5 +1,8 @@
 ---
 title: Let's Talk About Microservices
+date: "2016-05-25"
+tags: "microservices, architecture, development"
+author: ardfard
 ---
 
 Microservices architecture has become a buzzword in the software development world, offering a fresh perspective on how to design and build scalable, maintainable, and robust systems. This article dives into what microservices are, why they’re worth considering, their benefits, drawbacks, challenges, and a practical study case.

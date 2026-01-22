@@ -1,5 +1,8 @@
 ---
 title: "MCP Server for Project Development"
+date: "2025-04-14"
+tags: "mcp, server, database, ai, cursor"
+author: ardfard
 ---
 
 Leveraging the new AI hype, I've been thinking about how to use it to help with my project development. 

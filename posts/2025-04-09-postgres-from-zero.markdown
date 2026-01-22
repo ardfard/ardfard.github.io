@@ -1,5 +1,8 @@
 ---
 title: "PostgreSQL from Zero"
+date: "2025-04-09"
+tags: "postgresql, database, development"
+author: ardfard
 ---
 
 PostgreSQL is a powerful, open-source relational database system known for its stability, extensibility, and standards compliance. While most users install PostgreSQL via package managers or container images, building it from source unlocks a deeper level of control and understanding. Whether you're a developer looking to experiment with PostgreSQL internals, apply patches, or enable non-default features, compiling from source gives you complete flexibility.

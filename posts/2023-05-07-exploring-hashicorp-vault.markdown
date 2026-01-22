@@ -1,5 +1,8 @@
 ---
 title: Exploring Hashicorp Vault
+date: "2023-05-07"
+tags: "vault, security, development"
+author: ardfard
 ---
 
 HashiCorp Vault is a secure and scalable tool for managing sensitive information like API keys, tokens, and database credentials. It centralizes storage, enforces fine-grained access control, provides audit logging, and ensures encryption, addressing the challenges of dynamic, distributed environments.

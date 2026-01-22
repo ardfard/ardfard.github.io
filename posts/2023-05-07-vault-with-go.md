@@ -1,5 +1,8 @@
 ---
 title: "Secure Database Access with HashiCorp Vault in a Golang Application"
+date: "2023-05-07"
+tags: "go, vault, database, security"
+author: ardfard
 ---
 
 # Introduction

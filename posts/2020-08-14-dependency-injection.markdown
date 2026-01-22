@@ -1,5 +1,8 @@
 ---
 title: Inject Your Dependencies with Guice
+date: "2020-08-14"
+tags: "scala, guice, dependency injection, play framework"
+author: ardfard
 ---
 
 

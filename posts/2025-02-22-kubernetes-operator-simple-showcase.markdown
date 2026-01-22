@@ -1,5 +1,8 @@
 ---
 title: (WIP) Kubernetes Operator Simple Showcase
+date: "2025-02-22"
+tags: "kubernetes, operator, go, development"
+author: ardfard
 ---
 
 ## Introduction

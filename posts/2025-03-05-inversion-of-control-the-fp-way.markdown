@@ -1,5 +1,8 @@
 ---
 title: "The FP Way: Dependency Inversion"
+date: "2025-03-05"
+tags: "scala, dependency injection, inversion of control, functional programming"
+author: ardfard
 ---
 
 ## The Power of SOLID Principles

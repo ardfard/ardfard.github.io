@@ -1,5 +1,8 @@
 ---
 title: Propagating context in Temporal
+date: "2025-01-12"
+tags: "go, temporal, context, propagation"
+author: ardfard
 ---
 
 In my current project, a Go service uses a request ID to identify requests and propagate it throughout the system.
