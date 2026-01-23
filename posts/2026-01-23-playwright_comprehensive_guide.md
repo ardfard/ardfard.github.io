@@ -5,8 +5,6 @@ tags: "testing, playwright, typescript, automation, rust"
 author: ardfard
 ---
 
-# A Deep Dive into Playwright: Lifecycle, Fixtures, and Test Architecture
-
 In building the [Kanjinomic](https://kanjinomic.com) Japanese vocabulary learning platform, I've implemented an End-to-End (E2E) testing suite using Playwright. This post documents the architectural decisions, the "magic" behind Playwright's fixture system, and the lifecycle of a test run.
 
 ## 1. The Architecture of a Playwright Project
@@ -42,8 +40,8 @@ This separation allows us to keep helper logic (`fixtures.ts`) right next to the
 
 ```
 ┌─────────────────────────────────────────┐
-│ 1. Read playwright.config.ts            │
-│    testDir: './tests/e2e'               │
+│ 1. Read playwright.config.ts           │
+│    testDir: './tests/e2e'              │
 └─────────────────────────────────────────┘
               │
               ▼
@@ -56,7 +54,7 @@ This separation allows us to keep helper logic (`fixtures.ts`) right next to the
               │
               ▼
 ┌─────────────────────────────────────────┐
-│ 3. Parse playwright.spec.ts             │
+│ 3. Parse playwright.spec.ts            │
 │    - Find test.describe() blocks        │
 │    - Find test() calls                  │
 │    - Count: 2 suites, ~10 tests         │
@@ -120,7 +118,7 @@ This pattern means that any test importing our custom `test` object automaticall
 │ })                                      │
 │                                         │
 │ Result: NEW test object with:           │
-│   ✅ All base fixtures (page, etc.)     │
+│   ✅ All base fixtures (page, etc.)    │
 │   ✅ Your custom fixtures               │
 └─────────────────────────────────────────┘
               │
@@ -130,10 +128,10 @@ This pattern means that any test importing our custom `test` object automaticall
 │ playwright.spec.ts                      │
 │ import { test } from './fixtures'       │
 │                                         │
-│ test('My test', async ({                │
-│   page,              ← from base        │
-│   testUser,          ← from extend      │
-│   authenticatedPage  ← from extend      │
+│ test('My test', async ({               │
+│   page,              ← from base       │
+│   testUser,          ← from extend     │
+│   authenticatedPage  ← from extend     │
 │ }) => { ... })                          │
 └─────────────────────────────────────────┘
 ```
@@ -237,43 +235,43 @@ For a test like `test('My test', async ({ authenticatedPage, testSentence }) => 
 │      const pool = new pg.Pool(...);  ← SETUP                │
 │      await use(pool);          ← Test hasn't started yet!   │
 │      await pool.end();         ← TEARDOWN (after test)      │
-│    }                                                        │
+│    }                                                         │
 └─────────────────────────────────────────────────────────────┘
          │
          ▼
 ┌─────────────────────────────────────────────────────────────┐
 │ 3. Create testUser fixture (needs dbPool)                   │
-│    testUser: async ({ dbPool }, use) => {                   │
+│    testUser: async ({ dbPool }, use) => {                    │
 │      const user = await createTestUser(dbPool); ← SETUP     │
 │      await use(user);          ← Test hasn't started yet!   │
 │      await cleanupUser(...);   ← TEARDOWN (after test)      │
-│    }                                                        │
+│    }                                                         │
 └─────────────────────────────────────────────────────────────┘
          │
          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 4. Create page fixture (built-in, automatic)                │
+│ 4. Create page fixture (built-in, automatic)               │
 │    - Opens browser context                                  │
 │    - Creates new page                                       │
 └─────────────────────────────────────────────────────────────┘
          │
          ▼
-┌─────────────────────────────────────────────────────────────-┐
-│ 5. Create authenticatedPage fixture                          │
+┌─────────────────────────────────────────────────────────────┐
+│ 5. Create authenticatedPage fixture                         │
 │    authenticatedPage: async ({ page, testUser, dbPool }) => {│
 │                                                              │
-│      // SETUP PHASE (runs BEFORE test)                       │
-│      const sentences = await createTestSentences(...);       │
-│      await loginUser(page, testUser, baseUrl);               │
+│      // SETUP PHASE (runs BEFORE test)                     │
+│      const sentences = await createTestSentences(...);      │
+│      await loginUser(page, testUser, baseUrl);              │
 │                                                              │
-│      await use(page);  ← TEST RUNS HERE                      │
+│      await use(page);  ← TEST RUNS HERE                     │
 │                                                              │
-│      // TEARDOWN PHASE (runs AFTER test)                     │
-│      for (const sentence of sentences) {                     │
-│        await cleanupSentence(...);                           │
+│      // TEARDOWN PHASE (runs AFTER test)                   │
+│      for (const sentence of sentences) {                    │
+│        await cleanupSentence(...);                          │
 │      }                                                       │
 │    }                                                         │
-└─────────────────────────────────────────────────────────────-┘
+└─────────────────────────────────────────────────────────────┘
          │
          ▼
 ┌─────────────────────────────────────────────────────────────┐
@@ -284,7 +282,7 @@ For a test like `test('My test', async ({ authenticatedPage, testSentence }) => 
          │
          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 7. Teardown in REVERSE order (LIFO - Last In First Out)     │
+│ 7. Teardown in REVERSE order (LIFO - Last In First Out)    │
 │    - authenticatedPage cleanup (delete sentences)           │
 │    - page cleanup (close browser)                           │
 │    - testUser cleanup (delete user)                         │
@@ -348,9 +346,9 @@ test('My test', async ({ testUser }) => {
 2. User created: test_abc123@example.com
 3. About to call use()...
    ┌─────────────────────────────────┐
-   │ TEST: Got user: test_abc123...  │ ← Test runs here
-   │ ... test code executes ...      │
-   │ TEST: Finished                  │
+   │ TEST: Got user: test_abc123... │ ← Test runs here
+   │ ... test code executes ...     │
+   │ TEST: Finished                 │
    └─────────────────────────────────┘
 4. use() returned, test is done!
 5. Teardown: Cleaning up...

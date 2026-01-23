@@ -79,8 +79,7 @@
 <article>
     
     <section>
-        <h1 id="a-deep-dive-into-playwright-lifecycle-fixtures-and-test-architecture">A Deep Dive into Playwright: Lifecycle, Fixtures, and Test Architecture</h1>
-<p>In building the <a href="https://kanjinomic.com">Kanjinomic</a> Japanese vocabulary learning platform, I’ve implemented an End-to-End (E2E) testing suite using Playwright. This post documents the architectural decisions, the “magic” behind Playwright’s fixture system, and the lifecycle of a test run.</p>
+        <p>In building the <a href="https://kanjinomic.com">Kanjinomic</a> Japanese vocabulary learning platform, I’ve implemented an End-to-End (E2E) testing suite using Playwright. This post documents the architectural decisions, the “magic” behind Playwright’s fixture system, and the lifecycle of a test run.</p>
 <h2 id="the-architecture-of-a-playwright-project">1. The Architecture of a Playwright Project</h2>
 <p>Unlike a simple script folder, a scalable Playwright setup requires structure. Here is the anatomy of our <code>tests/e2e</code> directory:</p>
 <pre class="text"><code>tests/e2e/
@@ -105,8 +104,8 @@
 <p>This separation allows us to keep helper logic (<code>fixtures.ts</code>) right next to the tests without Playwright trying to execute it as a test file.</p>
 <h3 id="visual-discovery-flow">Visual Discovery Flow</h3>
 <pre><code>┌─────────────────────────────────────────┐
-│ 1. Read playwright.config.ts            │
-│    testDir: './tests/e2e'               │
+│ 1. Read playwright.config.ts           │
+│    testDir: './tests/e2e'              │
 └─────────────────────────────────────────┘
               │
               ▼
@@ -119,7 +118,7 @@
               │
               ▼
 ┌─────────────────────────────────────────┐
-│ 3. Parse playwright.spec.ts             │
+│ 3. Parse playwright.spec.ts            │
 │    - Find test.describe() blocks        │
 │    - Find test() calls                  │
 │    - Count: 2 suites, ~10 tests         │
@@ -171,7 +170,7 @@
 │ })                                      │
 │                                         │
 │ Result: NEW test object with:           │
-│   ✅ All base fixtures (page, etc.)     │
+│   ✅ All base fixtures (page, etc.)    │
 │   ✅ Your custom fixtures               │
 └─────────────────────────────────────────┘
               │
@@ -181,10 +180,10 @@
 │ playwright.spec.ts                      │
 │ import { test } from './fixtures'       │
 │                                         │
-│ test('My test', async ({                │
-│   page,              ← from base        │
-│   testUser,          ← from extend      │
-│   authenticatedPage  ← from extend      │
+│ test('My test', async ({               │
+│   page,              ← from base       │
+│   testUser,          ← from extend     │
+│   authenticatedPage  ← from extend     │
 │ }) =&gt; { ... })                          │
 └─────────────────────────────────────────┘</code></pre>
 <h2 id="the-test-lifecycle-a-timeline">4. The Test Lifecycle: A Timeline</h2>
@@ -268,43 +267,43 @@ testSentence depends on:
 │      const pool = new pg.Pool(...);  ← SETUP                │
 │      await use(pool);          ← Test hasn't started yet!   │
 │      await pool.end();         ← TEARDOWN (after test)      │
-│    }                                                        │
+│    }                                                         │
 └─────────────────────────────────────────────────────────────┘
          │
          ▼
 ┌─────────────────────────────────────────────────────────────┐
 │ 3. Create testUser fixture (needs dbPool)                   │
-│    testUser: async ({ dbPool }, use) =&gt; {                   │
+│    testUser: async ({ dbPool }, use) =&gt; {                    │
 │      const user = await createTestUser(dbPool); ← SETUP     │
 │      await use(user);          ← Test hasn't started yet!   │
 │      await cleanupUser(...);   ← TEARDOWN (after test)      │
-│    }                                                        │
+│    }                                                         │
 └─────────────────────────────────────────────────────────────┘
          │
          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 4. Create page fixture (built-in, automatic)                │
+│ 4. Create page fixture (built-in, automatic)               │
 │    - Opens browser context                                  │
 │    - Creates new page                                       │
 └─────────────────────────────────────────────────────────────┘
          │
          ▼
-┌─────────────────────────────────────────────────────────────-┐
-│ 5. Create authenticatedPage fixture                          │
+┌─────────────────────────────────────────────────────────────┐
+│ 5. Create authenticatedPage fixture                         │
 │    authenticatedPage: async ({ page, testUser, dbPool }) =&gt; {│
 │                                                              │
-│      // SETUP PHASE (runs BEFORE test)                       │
-│      const sentences = await createTestSentences(...);       │
-│      await loginUser(page, testUser, baseUrl);               │
+│      // SETUP PHASE (runs BEFORE test)                     │
+│      const sentences = await createTestSentences(...);      │
+│      await loginUser(page, testUser, baseUrl);              │
 │                                                              │
-│      await use(page);  ← TEST RUNS HERE                      │
+│      await use(page);  ← TEST RUNS HERE                     │
 │                                                              │
-│      // TEARDOWN PHASE (runs AFTER test)                     │
-│      for (const sentence of sentences) {                     │
-│        await cleanupSentence(...);                           │
+│      // TEARDOWN PHASE (runs AFTER test)                   │
+│      for (const sentence of sentences) {                    │
+│        await cleanupSentence(...);                          │
 │      }                                                       │
 │    }                                                         │
-└─────────────────────────────────────────────────────────────-┘
+└─────────────────────────────────────────────────────────────┘
          │
          ▼
 ┌─────────────────────────────────────────────────────────────┐
@@ -315,7 +314,7 @@ testSentence depends on:
          │
          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 7. Teardown in REVERSE order (LIFO - Last In First Out)     │
+│ 7. Teardown in REVERSE order (LIFO - Last In First Out)    │
 │    - authenticatedPage cleanup (delete sentences)           │
 │    - page cleanup (close browser)                           │
 │    - testUser cleanup (delete user)                         │
@@ -365,9 +364,9 @@ testSentence depends on:
 2. User created: test_abc123@example.com
 3. About to call use()...
    ┌─────────────────────────────────┐
-   │ TEST: Got user: test_abc123...  │ ← Test runs here
-   │ ... test code executes ...      │
-   │ TEST: Finished                  │
+   │ TEST: Got user: test_abc123... │ ← Test runs here
+   │ ... test code executes ...     │
+   │ TEST: Finished                 │
    └─────────────────────────────────┘
 4. use() returned, test is done!
 5. Teardown: Cleaning up...
