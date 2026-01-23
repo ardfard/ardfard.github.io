@@ -87,10 +87,12 @@
 ├── playwright.spec.ts   # The Specs: Actual test scenarios
 └── README.md            # Documentation</code></pre>
 <h3 id="configuration-playwright.config.ts">Configuration (<code>playwright.config.ts</code>)</h3>
-<p>The entry point is <code>playwright.config.ts</code>. It acts as the command center, telling Playwright:
-1. <strong>Where to look</strong>: <code>testDir: './tests/e2e'</code>
-2. <strong>How to run</strong>: <code>fullyParallel: true</code>
-3. <strong>Environment</strong>: <code>webServer</code> config to spin up the backend automatically.</p>
+<p>The entry point is <code>playwright.config.ts</code>. It acts as the command center, telling Playwright:</p>
+<ol type="1">
+<li><strong>Where to look</strong>: <code>testDir: './tests/e2e'</code></li>
+<li><strong>How to run</strong>: <code>fullyParallel: true</code></li>
+<li><strong>Environment</strong>: <code>webServer</code> config to spin up the backend automatically.</li>
+</ol>
 <h2 id="test-discovery-how-playwright-finds-code">2. Test Discovery: How Playwright “Finds” Code</h2>
 <p>When you run <code>bunx playwright test</code>, Playwright doesn’t just run every file. It follows a specific discovery process:</p>
 <ol type="1">
@@ -110,25 +112,25 @@
               │
               ▼
 ┌─────────────────────────────────────────┐
-│ 2. Scan directory: tests/e2e/           │
-│    ├── fixtures.ts                      │
-│    ├── playwright.spec.ts  ← ✅ MATCH   │
-│    └── README.md                        │
+│ 2. Scan directory: tests/e2e/          │
+│    ├── fixtures.ts                     │
+│    ├── playwright.spec.ts  ← ✅ MATCH  │
+│    └── README.md                       │
 └─────────────────────────────────────────┘
               │
               ▼
 ┌─────────────────────────────────────────┐
 │ 3. Parse playwright.spec.ts            │
-│    - Find test.describe() blocks        │
-│    - Find test() calls                  │
-│    - Count: 2 suites, ~10 tests         │
+│    - Find test.describe() blocks       │
+│    - Find test() calls                 │
+│    - Count: 2 suites, ~10 tests        │
 └─────────────────────────────────────────┘
               │
               ▼
 ┌─────────────────────────────────────────┐
-│ 4. Execute tests                        │
-│    - Run each test() function           │
-│    - Use fixtures from fixtures.ts      │
+│ 4. Execute tests                       │
+│    - Run each test() function          │
+│    - Use fixtures from fixtures.ts     │
 └─────────────────────────────────────────┘</code></pre>
 <h2 id="the-power-of-fixtures">3. The Power of Fixtures</h2>
 <p>The most confusing yet powerful part of Playwright is <strong>Fixtures</strong>. In traditional testing, you might have <code>beforeEach</code> and <code>afterEach</code> hooks cluttering your test files. Playwright replaces this with a dependency injection system.</p>
@@ -150,41 +152,41 @@
 <p>This pattern means that any test importing our custom <code>test</code> object automatically has access to our custom environment, with full TypeScript support.</p>
 <h3 id="visual-flow-of-base.extend">Visual Flow of <code>base.extend()</code></h3>
 <pre><code>┌─────────────────────────────────────────┐
-│ @playwright/test                        │
-│ export const test = { ... }             │
-│   - page fixture                        │
-│   - context fixture                     │
-│   - browser fixture                     │
-│   - etc.                                │
+│ @playwright/test                       │
+│ export const test = { ... }            │
+│   - page fixture                       │
+│   - context fixture                    │
+│   - browser fixture                    │
+│   - etc.                               │
 └─────────────────────────────────────────┘
               │
               │ import { test as base }
               ▼
 ┌─────────────────────────────────────────┐
-│ fixtures.ts                             │
-│                                         │
-│ base.extend&lt;Fixtures&gt;({                 │
-│   dbPool: ...                           │
-│   testUser: ...                         │
-│   authenticatedPage: ...                │
-│ })                                      │
-│                                         │
-│ Result: NEW test object with:           │
+│ fixtures.ts                            │
+│                                        │
+│ base.extend&lt;Fixtures&gt;({                │
+│   dbPool: ...                          │
+│   testUser: ...                        │
+│   authenticatedPage: ...               │
+│ })                                     │
+│                                        │
+│ Result: NEW test object with:          │
 │   ✅ All base fixtures (page, etc.)    │
-│   ✅ Your custom fixtures               │
+│   ✅ Your custom fixtures              │
 └─────────────────────────────────────────┘
               │
               │ export const test
               ▼
 ┌─────────────────────────────────────────┐
-│ playwright.spec.ts                      │
-│ import { test } from './fixtures'       │
-│                                         │
+│ playwright.spec.ts                     │
+│ import { test } from './fixtures'      │
+│                                        │
 │ test('My test', async ({               │
 │   page,              ← from base       │
 │   testUser,          ← from extend     │
 │   authenticatedPage  ← from extend     │
-│ }) =&gt; { ... })                          │
+│ }) =&gt; { ... })                         │
 └─────────────────────────────────────────┘</code></pre>
 <h2 id="the-test-lifecycle-a-timeline">4. The Test Lifecycle: A Timeline</h2>
 <p>Understanding the order of operations is critical for debugging. Here is the lifecycle of a single test execution:</p>
@@ -202,26 +204,32 @@ testUser depends on:
 
 testSentence depends on:
   └── dbPool (custom fixture)</code></pre>
-<p><strong>Resolution Order (Bottom-Up):</strong>
-1. <code>dbPool</code> (no dependencies)
-2. <code>testUser</code> (needs <code>dbPool</code>)
-3. <code>testSentence</code> (needs <code>dbPool</code>)
-4. <code>page</code> (built-in, created automatically)
-5. <code>authenticatedPage</code> (needs <code>page</code>, <code>testUser</code>, <code>dbPool</code>)</p>
+<p><strong>Resolution Order (Bottom-Up):</strong></p>
+<ol type="1">
+<li><code>dbPool</code> (no dependencies)</li>
+<li><code>testUser</code> (needs <code>dbPool</code>)</li>
+<li><code>testSentence</code> (needs <code>dbPool</code>)</li>
+<li><code>page</code> (built-in, created automatically)</li>
+<li><code>authenticatedPage</code> (needs <code>page</code>, <code>testUser</code>, <code>dbPool</code>)</li>
+</ol>
 <h3 id="phase-3-setup-bottom-up">Phase 3: Setup (Bottom-Up)</h3>
-<p>Fixtures are initialized in dependency order:
-1. <strong><code>dbPool</code></strong>: Connects to Postgres.
-2. <strong><code>testUser</code></strong>: Uses <code>dbPool</code> to insert a user via API/DB.
-3. <strong><code>page</code></strong>: Playwright launches the browser context.
-4. <strong><code>authenticatedPage</code></strong>: Logs the user in and navigates to the dashboard.</p>
+<p>Fixtures are initialized in dependency order:</p>
+<ol type="1">
+<li><strong><code>dbPool</code></strong>: Connects to Postgres.</li>
+<li><strong><code>testUser</code></strong>: Uses <code>dbPool</code> to insert a user via API/DB.</li>
+<li><strong><code>page</code></strong>: Playwright launches the browser context.</li>
+<li><strong><code>authenticatedPage</code></strong>: Logs the user in and navigates to the dashboard.</li>
+</ol>
 <h3 id="phase-4-execution">Phase 4: Execution</h3>
 <p>The test function finally runs.</p>
 <h3 id="phase-5-teardown-top-down-lifo">Phase 5: Teardown (Top-Down / LIFO)</h3>
-<p>Once the test finishes (pass or fail), fixtures are torn down in reverse order:
-1. <strong><code>authenticatedPage</code></strong>: (Cleanup logic, if any).
-2. <strong><code>page</code></strong>: Browser context closes.
-3. <strong><code>testUser</code></strong>: User data is deleted from the DB.
-4. <strong><code>dbPool</code></strong>: Database connection closes.</p>
+<p>Once the test finishes (pass or fail), fixtures are torn down in reverse order:</p>
+<ol type="1">
+<li><strong><code>authenticatedPage</code></strong>: (Cleanup logic, if any).</li>
+<li><strong><code>page</code></strong>: Browser context closes.</li>
+<li><strong><code>testUser</code></strong>: User data is deleted from the DB.</li>
+<li><strong><code>dbPool</code></strong>: Database connection closes.</li>
+</ol>
 <h3 id="complete-lifecycle-timeline">Complete Lifecycle Timeline</h3>
 <pre><code>Time →
 │
@@ -257,68 +265,68 @@ testSentence depends on:
 <h3 id="detailed-fixture-execution-flow">Detailed Fixture Execution Flow</h3>
 <p>For a test like <code>test('My test', async ({ authenticatedPage, testSentence }) =&gt; { ... })</code>:</p>
 <pre><code>┌─────────────────────────────────────────────────────────────┐
-│ 1. Playwright resolves dependencies                         │
+│ 1. Playwright resolves dependencies                        │
 └─────────────────────────────────────────────────────────────┘
          │
          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 2. Create dbPool fixture                                    │
-│    dbPool: async ({}, use) =&gt; {                             │
-│      const pool = new pg.Pool(...);  ← SETUP                │
-│      await use(pool);          ← Test hasn't started yet!   │
-│      await pool.end();         ← TEARDOWN (after test)      │
-│    }                                                         │
+│ 2. Create dbPool fixture                                   │
+│    dbPool: async ({}, use) =&gt; {                            │
+│      const pool = new pg.Pool(...);  ← SETUP               │
+│      await use(pool);          ← Test hasn't started yet!  │
+│      await pool.end();         ← TEARDOWN (after test)     │
+│    }                                                       │
 └─────────────────────────────────────────────────────────────┘
          │
          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 3. Create testUser fixture (needs dbPool)                   │
-│    testUser: async ({ dbPool }, use) =&gt; {                    │
-│      const user = await createTestUser(dbPool); ← SETUP     │
-│      await use(user);          ← Test hasn't started yet!   │
-│      await cleanupUser(...);   ← TEARDOWN (after test)      │
-│    }                                                         │
+│ 3. Create testUser fixture (needs dbPool)                  │
+│    testUser: async ({ dbPool }, use) =&gt; {                  │
+│      const user = await createTestUser(dbPool); ← SETUP    │
+│      await use(user);          ← Test hasn't started yet!  │
+│      await cleanupUser(...);   ← TEARDOWN (after test)     │
+│    }                                                       │
 └─────────────────────────────────────────────────────────────┘
          │
          ▼
 ┌─────────────────────────────────────────────────────────────┐
 │ 4. Create page fixture (built-in, automatic)               │
-│    - Opens browser context                                  │
-│    - Creates new page                                       │
+│    - Opens browser context                                 │
+│    - Creates new page                                      │
 └─────────────────────────────────────────────────────────────┘
          │
          ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 5. Create authenticatedPage fixture                         │
+┌────────────────────────────────────────────────────────────--─┐
+│ 5. Create authenticatedPage fixture                          │
 │    authenticatedPage: async ({ page, testUser, dbPool }) =&gt; {│
 │                                                              │
-│      // SETUP PHASE (runs BEFORE test)                     │
-│      const sentences = await createTestSentences(...);      │
-│      await loginUser(page, testUser, baseUrl);              │
+│      // SETUP PHASE (runs BEFORE test)                       │
+│      const sentences = await createTestSentences(...);       │
+│      await loginUser(page, testUser, baseUrl);               │
 │                                                              │
-│      await use(page);  ← TEST RUNS HERE                     │
+│      await use(page);  ← TEST RUNS HERE                      │
 │                                                              │
-│      // TEARDOWN PHASE (runs AFTER test)                   │
-│      for (const sentence of sentences) {                    │
-│        await cleanupSentence(...);                          │
+│      // TEARDOWN PHASE (runs AFTER test)                     │
+│      for (const sentence of sentences) {                     │
+│        await cleanupSentence(...);                           │
 │      }                                                       │
 │    }                                                         │
-└─────────────────────────────────────────────────────────────┘
+└─────────────────────────────────────────────────────────────--┘
          │
          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 6. Test executes                                            │
-│    await authenticatedPage.goto(...);                       │
-│    // ... test code ...                                     │
+│ 6. Test executes                                           │
+│    await authenticatedPage.goto(...);                      │
+│    // ... test code ...                                    │
 └─────────────────────────────────────────────────────────────┘
          │
          ▼
 ┌─────────────────────────────────────────────────────────────┐
 │ 7. Teardown in REVERSE order (LIFO - Last In First Out)    │
-│    - authenticatedPage cleanup (delete sentences)           │
-│    - page cleanup (close browser)                           │
-│    - testUser cleanup (delete user)                         │
-│    - dbPool cleanup (close connection)                      │
+│    - authenticatedPage cleanup (delete sentences)          │
+│    - page cleanup (close browser)                          │
+│    - testUser cleanup (delete user)                        │
+│    - dbPool cleanup (close connection)                     │
 └─────────────────────────────────────────────────────────────┘</code></pre>
 <h2 id="the-magic-of-use">5. The Magic of <code>use()</code></h2>
 <p>In a fixture, <code>use</code> is not just a return statement. It is a <strong>callback that pauses execution</strong>.</p>
@@ -434,10 +442,12 @@ testSentence depends on:
     /------------\
    /    Unit      \   ← Unit tests (in src/ modules)
   /----------------\</code></pre>
-<p><strong>Test Types:</strong>
-- <strong>Unit Tests</strong>: Fast, isolated (e.g., scoring function)
-- <strong>Integration Tests</strong>: Medium speed, test interactions (e.g., API + DB)
-- <strong>E2E Tests</strong>: Slower, full user journey (e.g., Playwright)</p>
+<p><strong>Test Types:</strong></p>
+<ul>
+<li><strong>Unit Tests</strong>: Fast, isolated (e.g., scoring function)</li>
+<li><strong>Integration Tests</strong>: Medium speed, test interactions (e.g., API + DB)</li>
+<li><strong>E2E Tests</strong>: Slower, full user journey (e.g., Playwright)</li>
+</ul>
 <h3 id="how-tests-overlap">How Tests Overlap</h3>
 <p>A test can be <strong>both</strong> integration and regression:</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">// From your state_consistency.rs</span></span>
@@ -494,16 +504,20 @@ testSentence depends on:
 │       └── global-setup.ts</code></pre>
 <h2 id="key-takeaways-summary">8. Key Takeaways Summary</h2>
 <h3 id="understanding-test-discovery">Understanding Test Discovery</h3>
-<p>Playwright discovers tests by:
-1. Reading <code>testDir</code> from config (<code>./tests/e2e</code>)
-2. Finding files matching <code>*.spec.*</code> or <code>*.test.*</code> patterns
-3. Parsing those files for <code>test()</code> and <code>test.describe()</code> calls
-4. Executing the discovered tests</p>
-<p>In our case:
-- Config: <code>testDir: './tests/e2e'</code>
-- Test file: <code>playwright.spec.ts</code> (matches pattern)
-- Tests found: All <code>test()</code> calls inside <code>test.describe()</code> blocks
-- Helper file: <code>fixtures.ts</code> (ignored, but imported by tests)</p>
+<p>Playwright discovers tests by:</p>
+<ol type="1">
+<li>Reading <code>testDir</code> from config (<code>./tests/e2e</code>)</li>
+<li>Finding files matching <code>*.spec.*</code> or <code>*.test.*</code> patterns</li>
+<li>Parsing those files for <code>test()</code> and <code>test.describe()</code> calls</li>
+<li>Executing the discovered tests</li>
+</ol>
+<p>In our case:</p>
+<ul>
+<li>Config: <code>testDir: './tests/e2e'</code></li>
+<li>Test file: <code>playwright.spec.ts</code> (matches pattern)</li>
+<li>Tests found: All <code>test()</code> calls inside <code>test.describe()</code> blocks</li>
+<li>Helper file: <code>fixtures.ts</code> (ignored, but imported by tests)</li>
+</ul>
 <h3 id="understanding-fixture-lifecycle">Understanding Fixture Lifecycle</h3>
 <ol type="1">
 <li><strong><code>await use()</code> pauses the fixture</strong> and runs the test</li>
@@ -521,12 +535,14 @@ testSentence depends on:
 </ul>
 <p>Without <code>base.extend()</code>, you’d only have Playwright’s built-in fixtures. With it, you get both built-in and custom fixtures in one <code>test</code> object.</p>
 <h2 id="conclusion">Conclusion</h2>
-<p>By leveraging Playwright’s fixture system, we’ve created a test suite that is:
-1. <strong>Isolated</strong>: Every test gets a fresh user and database state.
-2. <strong>Clean</strong>: No global setup/teardown mess in spec files.
-3. <strong>Typed</strong>: TypeScript knows exactly what data is available in each test.
-4. <strong>Maintainable</strong>: Fixtures are reusable and composable.
-5. <strong>Reliable</strong>: Automatic cleanup prevents test pollution.</p>
+<p>By leveraging Playwright’s fixture system, we’ve created a test suite that is:</p>
+<ol type="1">
+<li><strong>Isolated</strong>: Every test gets a fresh user and database state.</li>
+<li><strong>Clean</strong>: No global setup/teardown mess in spec files.</li>
+<li><strong>Typed</strong>: TypeScript knows exactly what data is available in each test.</li>
+<li><strong>Maintainable</strong>: Fixtures are reusable and composable.</li>
+<li><strong>Reliable</strong>: Automatic cleanup prevents test pollution.</li>
+</ol>
 <p>This architecture provides the confidence needed to iterate quickly on the Kanjinomic platform without fear of breaking critical user flows.</p>
 <h2 id="resources">Resources</h2>
 <ul>
