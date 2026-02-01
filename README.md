@@ -4,26 +4,39 @@ A personal blog built with [Hakyll](https://jaspervdj.be/hakyll/), a static site
 
 ## Prerequisites
 
-You need [Nix](https://nixos.org/) installed to set up the development environment.
+You need [GHCup](https://www.haskell.org/ghcup/) to install the Haskell toolchain (GHC and Cabal):
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
+```
 
 ## Setting Up
 
-Enter the development environment:
+Install GHC and Cabal:
+
+```bash
+ghcup install ghc
+ghcup install cabal
+```
+
+Any recent GHC 9.x and Cabal 3.x will work.
+
+### Alternative: Nix
+
+If you prefer Nix, the repo includes a `shell.nix` that provisions GHC 8.8.3, Cabal, Hakyll, and ghcid:
 
 ```bash
 nix-shell
 ```
 
-This will set up GHC 8.8.3, Cabal, Hakyll, and ghcid.
-
 ## Building the Site
 
 ```bash
 # Build the site executable
-cabal build
+cabal v2-build
 
 # Generate the static site
-cabal run site build
+cabal v2-run site build
 ```
 
 The compiled site will be output to the `_site/` directory.
@@ -57,7 +70,7 @@ Your post content here written in Markdown.
 After creating a new post, rebuild the site:
 
 ```bash
-cabal run site build
+cabal v2-run site build
 ```
 
 ## Development
@@ -65,7 +78,7 @@ cabal run site build
 Watch for changes and rebuild automatically:
 
 ```bash
-cabal run site watch
+cabal v2-run site watch
 ```
 
 ## Deployment

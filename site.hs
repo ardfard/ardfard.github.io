@@ -1,6 +1,13 @@
 --------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
 import           Hakyll
+import           Data.List (isPrefixOf)
+
+
+--------------------------------------------------------------------------------
+-- Filter out draft posts (those starting with '_')
+filterDrafts :: [Item String] -> [Item String]
+filterDrafts = filter (not . ("posts/_" `isPrefixOf`) . toFilePath . itemIdentifier)
 
 
 --------------------------------------------------------------------------------
@@ -28,7 +35,7 @@ main = hakyll $ do
             >>= loadAndApplyTemplate "templates/default.html" defaultContext
             >>= relativizeUrls
 
-    match "posts/*" $ do
+    match ("posts/*" .&&. complement "posts/_*") $ do
         route $ setExtension "html"
         compile $ pandocCompiler
             >>= loadAndApplyTemplate "templates/post.html"    postCtx
@@ -38,7 +45,8 @@ main = hakyll $ do
     create ["posts.html"] $ do
         route idRoute
         compile $ do
-            posts <- recentFirst =<< loadAll "posts/*"
+            allPosts <- loadAll "posts/*"
+            posts <- recentFirst $ filterDrafts allPosts
             let archiveCtx =
                     listField "posts" postCtx (return posts) <>
                     constField "title" "Posts"               <>
@@ -53,7 +61,8 @@ main = hakyll $ do
     match "index.html" $ do
         route idRoute
         compile $ do
-            posts <- recentFirst =<< loadAll "posts/*"
+            allPosts <- loadAll "posts/*"
+            posts <- recentFirst $ filterDrafts allPosts
             let indexCtx =
                     listField "posts" postCtx (return posts) `mappend`
                     defaultContext
