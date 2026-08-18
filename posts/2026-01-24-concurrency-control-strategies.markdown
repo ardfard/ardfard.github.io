@@ -691,11 +691,13 @@ COMMIT;  -- May throw serialization error
 ```
 
 **Advantages:**
+
 - High concurrency for readers
 - No read locks
 - Predictable read behavior
 
 **Disadvantages:**
+
 - Write skew anomalies possible (unless using full serializability)
 - Requires conflict detection at commit
 - May need application retries
@@ -705,12 +707,14 @@ COMMIT;  -- May throw serialization error
 Advisory locks are application-level locks that require cooperation between processes. Unlike regular locks that are enforced by the database or operating system, advisory locks only work if all applications agree to check and respect them.
 
 **Key Concept:**
+
 - **Advisory** = "Please respect this lock" (voluntary)
 - **Mandatory** = "You cannot access this" (enforced)
 
 Most database row locks are mandatory, but many databases (PostgreSQL, MySQL) also provide advisory lock functions for application-specific coordination.
 
 **How they work:**
+
 1. Application requests an advisory lock using a numeric ID
 2. Database grants or denies the lock (first-come, first-served)
 3. Other applications can check if the lock exists
@@ -818,6 +822,7 @@ async fn worker_example() -> Result<(), Error> {
 **Use Cases for Advisory Locks:**
 
 1. **Distributed Job Processing:**
+
    - Multiple workers pulling from a job queue
    - Advisory lock ensures only one worker processes each job
    - Example: Background job systems like Sidekiq, Celery
@@ -847,6 +852,7 @@ async fn pick_job(client: &Client) -> Result<Option<Job>, Error> {
 ```
 
 2. **Preventing Duplicate Cron Jobs:**
+
    - Multiple servers running same cron schedule
    - Advisory lock ensures only one runs at a time
 
@@ -873,14 +879,17 @@ async fn run_daily_report(client: &Client) -> Result<(), Error> {
 ```
 
 3. **Rate Limiting / Resource Pools:**
+
    - Limit concurrent access to external API
    - Use multiple advisory locks (one per "slot")
 
 4. **Application-Level Mutexes:**
+
    - Coordinate between different application instances
    - Without needing a separate coordination service
 
 **Advantages:**
+
 - Lightweight - no table rows needed
 - Session-scoped - automatic cleanup on disconnect
 - Integer-based - easy to coordinate across applications
@@ -888,6 +897,7 @@ async fn run_daily_report(client: &Client) -> Result<(), Error> {
 - Useful for distributed coordination
 
 **Disadvantages:**
+
 - **Not enforced** - applications can ignore them
 - Database-specific (PostgreSQL, MySQL have different APIs)
 - Requires all apps to cooperate
@@ -905,6 +915,7 @@ async fn run_daily_report(client: &Client) -> Result<(), Error> {
 | **Use case** | Job coordination, cron deduplication | Data consistency |
 
 **When to use Advisory Locks:**
+
 - Coordinating multiple application instances
 - Preventing duplicate background jobs
 - Rate limiting across processes
@@ -912,6 +923,7 @@ async fn run_daily_report(client: &Client) -> Result<(), Error> {
 - When you need lightweight coordination without data locks
 
 **When NOT to use:**
+
 - Don't rely on them for data integrity (use row locks instead)
 - Don't use if untrusted applications access your database
 - Don't use when you need guaranteed enforcement
@@ -946,6 +958,7 @@ These are techniques for coordinating **shared memory** within a single process:
 ### Key Differences:
 
 **Database Strategies (Pessimistic, Optimistic, MVCC, etc.):**
+
 - Coordinate access to **persistent storage** (database)
 - Work across **different processes/servers**
 - Handle **transactions** that span multiple operations
@@ -953,6 +966,7 @@ These are techniques for coordinating **shared memory** within a single process:
 - Used with SQL databases (PostgreSQL, MySQL, etc.)
 
 **In-Memory Techniques (Lock-Free, STM, Mutex, etc.):**
+
 - Coordinate access to **shared memory** 
 - Work within a **single process** (between threads)
 - Typically for **single operations** or small critical sections
@@ -962,12 +976,14 @@ These are techniques for coordinating **shared memory** within a single process:
 ### Can You Use Both?
 
 Yes! A typical application might use:
+
 - **MVCC** (database strategy) - For coordinating database access between users
 - **Lock-Free counters** (in-memory) - For tracking metrics in your application
 - **Optimistic locking** (database) - For shopping cart updates
 - **Mutex** (in-memory) - For protecting in-memory caches
 
 **Example:**
+
 ```rust
 // In-memory: Lock-free counter for metrics
 static REQUEST_COUNT: AtomicU64 = AtomicU64::new(0);

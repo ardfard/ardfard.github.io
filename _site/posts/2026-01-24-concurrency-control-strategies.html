@@ -741,26 +741,34 @@ A reader and a writer touching the same row without ever blocking each other. Tr
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">UPDATE</span> inventory <span class="kw">SET</span> quantity <span class="op">=</span> quantity <span class="op">-</span> <span class="dv">1</span> <span class="kw">WHERE</span> product_id <span class="op">=</span> <span class="dv">1</span>;</span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">-- Commit fails if write-write conflict detected</span></span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="kw">COMMIT</span>;  <span class="co">-- May throw serialization error</span></span></code></pre></div>
-<p><strong>Advantages:</strong>
-- High concurrency for readers
-- No read locks
-- Predictable read behavior</p>
-<p><strong>Disadvantages:</strong>
-- Write skew anomalies possible (unless using full serializability)
-- Requires conflict detection at commit
-- May need application retries</p>
+<p><strong>Advantages:</strong></p>
+<ul>
+<li>High concurrency for readers</li>
+<li>No read locks</li>
+<li>Predictable read behavior</li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul>
+<li>Write skew anomalies possible (unless using full serializability)</li>
+<li>Requires conflict detection at commit</li>
+<li>May need application retries</li>
+</ul>
 <h3 id="advisory-locks">Advisory Locks</h3>
 <p>Advisory locks are application-level locks that require cooperation between processes. Unlike regular locks that are enforced by the database or operating system, advisory locks only work if all applications agree to check and respect them.</p>
-<p><strong>Key Concept:</strong>
-- <strong>Advisory</strong> = “Please respect this lock” (voluntary)
-- <strong>Mandatory</strong> = “You cannot access this” (enforced)</p>
+<p><strong>Key Concept:</strong></p>
+<ul>
+<li><strong>Advisory</strong> = “Please respect this lock” (voluntary)</li>
+<li><strong>Mandatory</strong> = “You cannot access this” (enforced)</li>
+</ul>
 <p>Most database row locks are mandatory, but many databases (PostgreSQL, MySQL) also provide advisory lock functions for application-specific coordination.</p>
-<p><strong>How they work:</strong>
-1. Application requests an advisory lock using a numeric ID
-2. Database grants or denies the lock (first-come, first-served)
-3. Other applications can check if the lock exists
-4. <strong>But</strong>: Nothing prevents them from ignoring it and proceeding anyway
-5. Lock is released explicitly or when connection closes</p>
+<p><strong>How they work:</strong></p>
+<ol type="1">
+<li>Application requests an advisory lock using a numeric ID</li>
+<li>Database grants or denies the lock (first-come, first-served)</li>
+<li>Other applications can check if the lock exists</li>
+<li><strong>But</strong>: Nothing prevents them from ignoring it and proceeding anyway</li>
+<li>Lock is released explicitly or when connection closes</li>
+</ol>
 <p><strong>PostgreSQL Advisory Locks:</strong></p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Session 1: Acquire advisory lock with ID 12345</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> pg_advisory_lock(<span class="dv">12345</span>);</span>
@@ -853,7 +861,7 @@ A reader and a writer touching the same row without ever blocking each other. Tr
 <span id="cb8-74"><a href="#cb8-74" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p><strong>Use Cases for Advisory Locks:</strong></p>
 <ol type="1">
-<li><strong>Distributed Job Processing:</strong>
+<li><p><strong>Distributed Job Processing:</strong></p>
 <ul>
 <li>Multiple workers pulling from a job queue</li>
 <li>Advisory lock ensures only one worker processes each job</li>
@@ -882,7 +890,7 @@ A reader and a writer touching the same row without ever blocking each other. Tr
 <span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    <span class="cn">Ok</span>(<span class="cn">None</span>) <span class="co">// No available jobs</span></span>
 <span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <ol start="2" type="1">
-<li><strong>Preventing Duplicate Cron Jobs:</strong>
+<li><p><strong>Preventing Duplicate Cron Jobs:</strong></p>
 <ul>
 <li>Multiple servers running same cron schedule</li>
 <li>Advisory lock ensures only one runs at a time</li>
@@ -908,29 +916,33 @@ A reader and a writer touching the same row without ever blocking each other. Tr
 <span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    <span class="cn">Ok</span>(())</span>
 <span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <ol start="3" type="1">
-<li><strong>Rate Limiting / Resource Pools:</strong>
+<li><p><strong>Rate Limiting / Resource Pools:</strong></p>
 <ul>
 <li>Limit concurrent access to external API</li>
 <li>Use multiple advisory locks (one per “slot”)</li>
 </ul></li>
-<li><strong>Application-Level Mutexes:</strong>
+<li><p><strong>Application-Level Mutexes:</strong></p>
 <ul>
 <li>Coordinate between different application instances</li>
 <li>Without needing a separate coordination service</li>
 </ul></li>
 </ol>
-<p><strong>Advantages:</strong>
-- Lightweight - no table rows needed
-- Session-scoped - automatic cleanup on disconnect
-- Integer-based - easy to coordinate across applications
-- Fast - no table scans or row locks
-- Useful for distributed coordination</p>
-<p><strong>Disadvantages:</strong>
-- <strong>Not enforced</strong> - applications can ignore them
-- Database-specific (PostgreSQL, MySQL have different APIs)
-- Requires all apps to cooperate
-- No built-in timeout (blocking version waits forever)
-- Doesn’t protect actual data - just coordinates applications</p>
+<p><strong>Advantages:</strong></p>
+<ul>
+<li>Lightweight - no table rows needed</li>
+<li>Session-scoped - automatic cleanup on disconnect</li>
+<li>Integer-based - easy to coordinate across applications</li>
+<li>Fast - no table scans or row locks</li>
+<li>Useful for distributed coordination</li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul>
+<li><strong>Not enforced</strong> - applications can ignore them</li>
+<li>Database-specific (PostgreSQL, MySQL have different APIs)</li>
+<li>Requires all apps to cooperate</li>
+<li>No built-in timeout (blocking version waits forever)</li>
+<li>Doesn’t protect actual data - just coordinates applications</li>
+</ul>
 <p><strong>Advisory vs Mandatory Locks:</strong></p>
 <table>
 <thead>
@@ -968,16 +980,20 @@ A reader and a writer touching the same row without ever blocking each other. Tr
 </tr>
 </tbody>
 </table>
-<p><strong>When to use Advisory Locks:</strong>
-- Coordinating multiple application instances
-- Preventing duplicate background jobs
-- Rate limiting across processes
-- When you control all applications accessing the database
-- When you need lightweight coordination without data locks</p>
-<p><strong>When NOT to use:</strong>
-- Don’t rely on them for data integrity (use row locks instead)
-- Don’t use if untrusted applications access your database
-- Don’t use when you need guaranteed enforcement</p>
+<p><strong>When to use Advisory Locks:</strong></p>
+<ul>
+<li>Coordinating multiple application instances</li>
+<li>Preventing duplicate background jobs</li>
+<li>Rate limiting across processes</li>
+<li>When you control all applications accessing the database</li>
+<li>When you need lightweight coordination without data locks</li>
+</ul>
+<p><strong>When NOT to use:</strong></p>
+<ul>
+<li>Don’t rely on them for data integrity (use row locks instead)</li>
+<li>Don’t use if untrusted applications access your database</li>
+<li>Don’t use when you need guaranteed enforcement</li>
+</ul>
 <h2 id="understanding-the-categories">Understanding the Categories</h2>
 <p>Before comparing techniques, it’s important to understand that these concepts operate at different levels and serve different purposes:</p>
 <h3 id="database-concurrency-control-strategies">Database Concurrency Control Strategies</h3>
@@ -1088,24 +1104,30 @@ A reader and a writer touching the same row without ever blocking each other. Tr
 </tbody>
 </table>
 <h3 id="key-differences">Key Differences:</h3>
-<p><strong>Database Strategies (Pessimistic, Optimistic, MVCC, etc.):</strong>
-- Coordinate access to <strong>persistent storage</strong> (database)
-- Work across <strong>different processes/servers</strong>
-- Handle <strong>transactions</strong> that span multiple operations
-- Survive process restarts
-- Used with SQL databases (PostgreSQL, MySQL, etc.)</p>
-<p><strong>In-Memory Techniques (Lock-Free, STM, Mutex, etc.):</strong>
-- Coordinate access to <strong>shared memory</strong>
-- Work within a <strong>single process</strong> (between threads)
-- Typically for <strong>single operations</strong> or small critical sections
-- Lost when process restarts
-- Used in application code (Rust, C++, Java, etc.)</p>
+<p><strong>Database Strategies (Pessimistic, Optimistic, MVCC, etc.):</strong></p>
+<ul>
+<li>Coordinate access to <strong>persistent storage</strong> (database)</li>
+<li>Work across <strong>different processes/servers</strong></li>
+<li>Handle <strong>transactions</strong> that span multiple operations</li>
+<li>Survive process restarts</li>
+<li>Used with SQL databases (PostgreSQL, MySQL, etc.)</li>
+</ul>
+<p><strong>In-Memory Techniques (Lock-Free, STM, Mutex, etc.):</strong></p>
+<ul>
+<li>Coordinate access to <strong>shared memory</strong></li>
+<li>Work within a <strong>single process</strong> (between threads)</li>
+<li>Typically for <strong>single operations</strong> or small critical sections</li>
+<li>Lost when process restarts</li>
+<li>Used in application code (Rust, C++, Java, etc.)</li>
+</ul>
 <h3 id="can-you-use-both">Can You Use Both?</h3>
-<p>Yes! A typical application might use:
-- <strong>MVCC</strong> (database strategy) - For coordinating database access between users
-- <strong>Lock-Free counters</strong> (in-memory) - For tracking metrics in your application
-- <strong>Optimistic locking</strong> (database) - For shopping cart updates
-- <strong>Mutex</strong> (in-memory) - For protecting in-memory caches</p>
+<p>Yes! A typical application might use:</p>
+<ul>
+<li><strong>MVCC</strong> (database strategy) - For coordinating database access between users</li>
+<li><strong>Lock-Free counters</strong> (in-memory) - For tracking metrics in your application</li>
+<li><strong>Optimistic locking</strong> (database) - For shopping cart updates</li>
+<li><strong>Mutex</strong> (in-memory) - For protecting in-memory caches</li>
+</ul>
 <p><strong>Example:</strong></p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">// In-memory: Lock-free counter for metrics</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static</span> REQUEST_COUNT<span class="op">:</span> AtomicU64 <span class="op">=</span> <span class="pp">AtomicU64::</span>new(<span class="dv">0</span>)<span class="op">;</span></span>
