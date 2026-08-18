@@ -517,6 +517,121 @@ body {
 
 .diagram .d-arrow { fill: var(--fig-blue); }
 
+/* Test-pyramid bands: one hue, three weights, so the tiers read as a ramp. */
+.diagram .p-band { stroke: var(--fig-blue); stroke-width: 1.5; fill: var(--fig-blue); }
+.diagram .p-band.unit { fill-opacity: 0.16; }
+.diagram .p-band.integration { fill-opacity: 0.30; }
+.diagram .p-band.e2e { fill-opacity: 0.46; }
+
+/* --- Step flows ------------------------------------------------------------ */
+
+/* A numbered sequence of stages, connected by a rail. Replaces box-drawing
+   ASCII diagrams, which break up at prose line-height and overflow on narrow
+   screens. Text reflows, so this stays readable at any width. */
+.content ol.flow {
+    list-style: none;
+    counter-reset: flow-step;
+    padding: 0;
+    margin-block: 2.5em;
+}
+
+.content ol.flow > li {
+    counter-increment: flow-step;
+    position: relative;
+    margin: 0;
+    padding: 0.9em 1.15em 0.9em 3.5em;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--bg-subtle);
+    color: var(--text-muted);
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+
+/* Numbered badge, centred on the connecting rail. */
+.content ol.flow > li::after {
+    content: counter(flow-step);
+    position: absolute;
+    left: 1em;
+    top: 0.95em;
+    width: 1.6em;
+    height: 1.6em;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--fig-blue);
+    color: var(--bg);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.content ol.flow > li + li {
+    margin-top: 2.2em;
+}
+
+.content ol.flow > li + li::before {
+    content: "";
+    position: absolute;
+    left: calc(1.8em - 1px);
+    top: -2.2em;
+    width: 2px;
+    height: 2.2em;
+    background: var(--rule);
+}
+
+.content ol.flow > li > strong:first-child {
+    display: block;
+    color: var(--text);
+    font-weight: 600;
+    margin-bottom: 0.1em;
+}
+
+.content ol.flow code {
+    font-size: 0.85em;
+}
+
+.content ol.flow ul {
+    margin: 0.45em 0 0;
+    padding-left: 1.1em;
+}
+
+.content ol.flow li li {
+    margin-top: 0.15em;
+}
+
+/* The moment the test itself runs — the point of most of these diagrams. */
+.content ol.flow > li.is-test {
+    border-color: var(--fig-blue);
+    background: var(--fig-blue-bg);
+    color: var(--text);
+}
+
+/* Inline code keeps the card's hue instead of the default beige chip, which
+   clashes against the blue highlight. */
+.content ol.flow > li.is-test code {
+    background: color-mix(in srgb, var(--fig-blue) 15%, transparent);
+}
+
+/* Teardown stages, tinted to read as the mirror of setup. */
+.content ol.flow > li.is-teardown::after {
+    background: var(--fig-amber);
+}
+
+.flow .hit {
+    color: var(--fig-blue);
+    font-weight: 600;
+}
+
+.flow .tag {
+    font-size: 0.78em;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--fig-amber);
+}
+
 .content table {
     width: 100%;
     border-collapse: collapse;

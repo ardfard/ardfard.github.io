@@ -91,89 +91,61 @@
 </ol>
 <p>This separation allows us to keep helper logic (<code>fixtures.ts</code>) right next to the tests without Playwright trying to execute it as a test file.</p>
 <h3 id="visual-discovery-flow">Visual Discovery Flow</h3>
-<pre><code>┌─────────────────────────────────────────┐
-│ 1. Read playwright.config.ts           │
-│    testDir: './tests/e2e'              │
-└─────────────────────────────────────────┘
-              │
-              ▼
-┌─────────────────────────────────────────┐
-│ 2. Scan directory: tests/e2e/          │
-│    ├── fixtures.ts                     │
-│    ├── playwright.spec.ts  ← ✅ MATCH  │
-│    └── README.md                       │
-└─────────────────────────────────────────┘
-              │
-              ▼
-┌─────────────────────────────────────────┐
-│ 3. Parse playwright.spec.ts            │
-│    - Find test.describe() blocks       │
-│    - Find test() calls                 │
-│    - Count: 2 suites, ~10 tests        │
-└─────────────────────────────────────────┘
-              │
-              ▼
-┌─────────────────────────────────────────┐
-│ 4. Execute tests                       │
-│    - Run each test() function          │
-│    - Use fixtures from fixtures.ts     │
-└─────────────────────────────────────────┘</code></pre>
+<ol class="flow">
+<li>
+<strong>Read <code>playwright.config.ts</code></strong>Pick up <code>testDir: './tests/e2e'</code>.
+</li>
+<li>
+<strong>Scan the directory</strong>Walk <code>tests/e2e/</code> and test each entry against the file pattern.
+<ul>
+<li>
+<code>fixtures.ts</code> — no match
+</li>
+<li>
+<code>playwright.spec.ts</code> — <span class="hit">match</span>
+</li>
+<li>
+<code>README.md</code> — no match
+</li>
+</ul>
+</li>
+<li>
+<strong>Parse the matching files</strong>Find <code>test.describe()</code> blocks and <code>test()</code> calls — here, 2 suites and roughly 10 tests.
+</li>
+<li>
+<strong>Execute</strong>Run each <code>test()</code> function, resolving fixtures from <code>fixtures.ts</code> as it goes.
+</li>
+</ol>
 <h2 id="the-power-of-fixtures">3. The Power of Fixtures</h2>
 <p>The most confusing yet powerful part of Playwright is <strong>Fixtures</strong>. In traditional testing, you might have <code>beforeEach</code> and <code>afterEach</code> hooks cluttering your test files. Playwright replaces this with a dependency injection system.</p>
 <h3 id="the-base.extend-pattern">The <code>base.extend</code> Pattern</h3>
 <p>We extend the default <code>test</code> object.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { test <span class="im">as</span> base } <span class="im">from</span> <span class="st">'@playwright/test'</span><span class="op">;</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">// We define a type for our custom world</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Fixtures <span class="op">=</span> {</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  dbPool<span class="op">:</span> pg<span class="op">.</span><span class="at">Pool</span><span class="op">;</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  testUser<span class="op">:</span> TestUser<span class="op">;</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  authenticatedPage<span class="op">:</span> Page<span class="op">;</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co">// We create a NEW test object with our fixtures baked in</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">const</span> test <span class="op">=</span> base<span class="op">.</span><span class="fu">extend</span><span class="op">&lt;</span>Fixtures<span class="op">&gt;</span>({</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Fixture definitions go here...</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { test <span class="im">as</span> base } <span class="im">from</span> <span class="st">'@playwright/test'</span><span class="op">;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">// We define a type for our custom world</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Fixtures <span class="op">=</span> {</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  dbPool<span class="op">:</span> pg<span class="op">.</span><span class="at">Pool</span><span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  testUser<span class="op">:</span> TestUser<span class="op">;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  authenticatedPage<span class="op">:</span> Page<span class="op">;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">// We create a NEW test object with our fixtures baked in</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">const</span> test <span class="op">=</span> base<span class="op">.</span><span class="fu">extend</span><span class="op">&lt;</span>Fixtures<span class="op">&gt;</span>({</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Fixture definitions go here...</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
 <p>This pattern means that any test importing our custom <code>test</code> object automatically has access to our custom environment, with full TypeScript support.</p>
 <h3 id="visual-flow-of-base.extend">Visual Flow of <code>base.extend()</code></h3>
-<pre><code>┌─────────────────────────────────────────┐
-│ @playwright/test                       │
-│ export const test = { ... }            │
-│   - page fixture                       │
-│   - context fixture                    │
-│   - browser fixture                    │
-│   - etc.                               │
-└─────────────────────────────────────────┘
-              │
-              │ import { test as base }
-              ▼
-┌─────────────────────────────────────────┐
-│ fixtures.ts                            │
-│                                        │
-│ base.extend&lt;Fixtures&gt;({                │
-│   dbPool: ...                          │
-│   testUser: ...                        │
-│   authenticatedPage: ...               │
-│ })                                     │
-│                                        │
-│ Result: NEW test object with:          │
-│   ✅ All base fixtures (page, etc.)    │
-│   ✅ Your custom fixtures              │
-└─────────────────────────────────────────┘
-              │
-              │ export const test
-              ▼
-┌─────────────────────────────────────────┐
-│ playwright.spec.ts                     │
-│ import { test } from './fixtures'      │
-│                                        │
-│ test('My test', async ({               │
-│   page,              ← from base       │
-│   testUser,          ← from extend     │
-│   authenticatedPage  ← from extend     │
-│ }) =&gt; { ... })                         │
-└─────────────────────────────────────────┘</code></pre>
+<ol class="flow">
+<li>
+<strong><code><span class="citation" data-cites="playwright/test">@playwright/test</span></code></strong>Ships <code>test</code> with the built-in fixtures: <code>page</code>, <code>context</code>, <code>browser</code>, and the rest.<br><span class="tag">imported as</span> <code>import { test as base }</code>
+</li>
+<li>
+<strong><code>fixtures.ts</code></strong><code>base.extend&lt;Fixtures&gt;({ dbPool, testUser, authenticatedPage })</code> returns a <span class="hit">new</span> <code>test</code> object carrying both every base fixture and your custom ones.<br><span class="tag">exported as</span> <code>export const test</code>
+</li>
+<li>
+<strong><code>playwright.spec.ts</code></strong>Imports that <code>test</code> and destructures whichever fixtures it needs — <code>page</code> from the base, <code>testUser</code> and <code>authenticatedPage</code> from your extension — with full type support.
+</li>
+</ol>
 <h2 id="the-test-lifecycle-a-timeline">4. The Test Lifecycle: A Timeline</h2>
 <p>Understanding the order of operations is critical for debugging. Here is the lifecycle of a single test execution:</p>
 <h3 id="phase-1-global-setup">Phase 1: Global Setup</h3>
@@ -217,203 +189,182 @@ testSentence depends on:
 <li><strong><code>dbPool</code></strong>: Database connection closes.</li>
 </ol>
 <h3 id="complete-lifecycle-timeline">Complete Lifecycle Timeline</h3>
-<pre><code>Time →
-│
-├─ [Global Setup]
-│  └─ webServer: cargo run starts
-│
-├─ [Test 1 Starts]
-│  ├─ dbPool setup
-│  ├─ testUser setup
-│  ├─ page setup
-│  ├─ authenticatedPage setup
-│  │
-│  ├─ [TEST RUNS]
-│  │  └─ Your test code executes
-│  │
-│  ├─ authenticatedPage teardown
-│  ├─ page teardown
-│  ├─ testUser teardown
-│  └─ dbPool teardown
-│
-├─ [Test 2 Starts]
-│  ├─ dbPool setup (NEW connection)
-│  ├─ testUser setup (NEW user)
-│  ├─ page setup (NEW page)
-│  ├─ authenticatedPage setup
-│  │
-│  ├─ [TEST RUNS]
-│  │
-│  └─ [Teardown in reverse]
-│
-└─ [All Tests Complete]
-   └─ webServer stops (if not reused)</code></pre>
+<ol class="flow">
+<li>
+<strong>Global setup</strong>The <code>webServer</code> starts — <code>cargo run</code> — once for the entire run.
+</li>
+<li>
+<strong>Test 1</strong>Fixtures set up bottom-up, the test body runs, then everything tears down in reverse.
+<ul>
+<li>
+setup: <code>dbPool</code> → <code>testUser</code> → <code>page</code> → <code>authenticatedPage</code>
+</li>
+<li>
+<span class="hit">test code executes</span>
+</li>
+<li>
+teardown: <code>authenticatedPage</code> → <code>page</code> → <code>testUser</code> → <code>dbPool</code>
+</li>
+</ul>
+</li>
+<li>
+<strong>Test 2</strong>The same cycle, with entirely fresh instances — a new connection, a new user, a new page. Nothing carries over from Test 1.
+</li>
+<li>
+<strong>All tests complete</strong>The <code>webServer</code> stops, unless it was configured to be reused.
+</li>
+</ol>
 <h3 id="detailed-fixture-execution-flow">Detailed Fixture Execution Flow</h3>
 <p>For a test like <code>test('My test', async ({ authenticatedPage, testSentence }) =&gt; { ... })</code>:</p>
-<pre><code>┌─────────────────────────────────────────────────────────────┐
-│ 1. Playwright resolves dependencies                        │
-└─────────────────────────────────────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 2. Create dbPool fixture                                   │
-│    dbPool: async ({}, use) =&gt; {                            │
-│      const pool = new pg.Pool(...);  ← SETUP               │
-│      await use(pool);          ← Test hasn't started yet!  │
-│      await pool.end();         ← TEARDOWN (after test)     │
-│    }                                                       │
-└─────────────────────────────────────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 3. Create testUser fixture (needs dbPool)                  │
-│    testUser: async ({ dbPool }, use) =&gt; {                  │
-│      const user = await createTestUser(dbPool); ← SETUP    │
-│      await use(user);          ← Test hasn't started yet!  │
-│      await cleanupUser(...);   ← TEARDOWN (after test)     │
-│    }                                                       │
-└─────────────────────────────────────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 4. Create page fixture (built-in, automatic)               │
-│    - Opens browser context                                 │
-│    - Creates new page                                      │
-└─────────────────────────────────────────────────────────────┘
-         │
-         ▼
-┌────────────────────────────────────────────────────────────--─┐
-│ 5. Create authenticatedPage fixture                          │
-│    authenticatedPage: async ({ page, testUser, dbPool }) =&gt; {│
-│                                                              │
-│      // SETUP PHASE (runs BEFORE test)                       │
-│      const sentences = await createTestSentences(...);       │
-│      await loginUser(page, testUser, baseUrl);               │
-│                                                              │
-│      await use(page);  ← TEST RUNS HERE                      │
-│                                                              │
-│      // TEARDOWN PHASE (runs AFTER test)                     │
-│      for (const sentence of sentences) {                     │
-│        await cleanupSentence(...);                           │
-│      }                                                       │
-│    }                                                         │
-└─────────────────────────────────────────────────────────────--┘
-         │
-         ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 6. Test executes                                           │
-│    await authenticatedPage.goto(...);                      │
-│    // ... test code ...                                    │
-└─────────────────────────────────────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 7. Teardown in REVERSE order (LIFO - Last In First Out)    │
-│    - authenticatedPage cleanup (delete sentences)          │
-│    - page cleanup (close browser)                          │
-│    - testUser cleanup (delete user)                        │
-│    - dbPool cleanup (close connection)                     │
-└─────────────────────────────────────────────────────────────┘</code></pre>
+<ol class="flow">
+<li>
+<strong>Resolve the dependency graph</strong>Playwright works out which fixtures the test asked for, and what those in turn depend on.
+</li>
+<li>
+<strong>Create <code>dbPool</code></strong>Opens the pool, then parks at <code>await use(pool)</code> — the test still hasn’t started.
+</li>
+<li>
+<strong>Create <code>testUser</code></strong><em>Needs <code>dbPool</code>.</em> Inserts the user, then parks at <code>await use(user)</code>.
+</li>
+<li>
+<strong>Create <code>page</code></strong>Built in and automatic: opens a browser context and a fresh page.
+</li>
+<li>
+<strong>Create <code>authenticatedPage</code></strong><em>Needs <code>page</code>, <code>testUser</code>, <code>dbPool</code>.</em> Seeds sentences, logs the user in, then parks at <code>await use(page)</code>.
+</li>
+<li class="is-test">
+<strong>The test body runs</strong>Every fixture is now suspended mid-function, holding its resources open for the duration of <code>await authenticatedPage.goto(…)</code> and whatever follows.
+</li>
+<li class="is-teardown">
+<strong>Teardown, in reverse (LIFO)</strong>Each <code>use()</code> call returns and the second half of each fixture finally executes.
+<ul>
+<li>
+<code>authenticatedPage</code> — delete seeded sentences
+</li>
+<li>
+<code>page</code> — close the browser
+</li>
+<li>
+<code>testUser</code> — delete the user
+</li>
+<li>
+<code>dbPool</code> — close the connection
+</li>
+</ul>
+</li>
+</ol>
 <h2 id="the-magic-of-use">5. The Magic of <code>use()</code></h2>
 <p>In a fixture, <code>use</code> is not just a return statement. It is a <strong>callback that pauses execution</strong>.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>testUser<span class="op">:</span> <span class="kw">async</span> ({ dbPool }<span class="op">,</span> use) <span class="kw">=&gt;</span> {</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- SETUP PHASE ---</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'Creating user...'</span>)<span class="op">;</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> user <span class="op">=</span> <span class="cf">await</span> <span class="fu">createTestUser</span>(dbPool)<span class="op">;</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- HANDOFF ---</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">// This passes 'user' to the test and PAUSES this function</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">use</span>(user)<span class="op">;</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- TEARDOWN PHASE ---</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">// This runs ONLY after the test completes</span></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'Cleaning up user...'</span>)<span class="op">;</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">cleanupUser</span>(dbPool<span class="op">,</span> user<span class="op">.</span><span class="at">id</span>)<span class="op">;</span></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>testUser<span class="op">:</span> <span class="kw">async</span> ({ dbPool }<span class="op">,</span> use) <span class="kw">=&gt;</span> {</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- SETUP PHASE ---</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'Creating user...'</span>)<span class="op">;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> user <span class="op">=</span> <span class="cf">await</span> <span class="fu">createTestUser</span>(dbPool)<span class="op">;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- HANDOFF ---</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">// This passes 'user' to the test and PAUSES this function</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">use</span>(user)<span class="op">;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- TEARDOWN PHASE ---</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">// This runs ONLY after the test completes</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'Cleaning up user...'</span>)<span class="op">;</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">cleanupUser</span>(dbPool<span class="op">,</span> user<span class="op">.</span><span class="at">id</span>)<span class="op">;</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span></span></code></pre></div>
 <p>This “Setup -&gt; Yield -&gt; Teardown” pattern within a single function ensures that cleanup logic is co-located with setup logic, preventing data leaks and “flaky” tests.</p>
 <h3 id="visual-execution-timeline-of-use">Visual Execution Timeline of <code>use()</code></h3>
-<div class="sourceCode" id="cb9"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Your fixture definition</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>testUser<span class="op">:</span> <span class="kw">async</span> ({ dbPool }<span class="op">,</span> use) <span class="kw">=&gt;</span> {</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'1. Setup: Creating user...'</span>)<span class="op">;</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> user <span class="op">=</span> <span class="cf">await</span> <span class="fu">createTestUser</span>(dbPool<span class="op">,</span> baseUrl)<span class="op">;</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'2. User created:'</span><span class="op">,</span> user<span class="op">.</span><span class="at">email</span>)<span class="op">;</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'3. About to call use()...'</span>)<span class="op">;</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">use</span>(user)<span class="op">;</span>  <span class="co">// ← MAGIC HAPPENS HERE</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'4. use() returned, test is done!'</span>)<span class="op">;</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'5. Teardown: Cleaning up...'</span>)<span class="op">;</span></span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">cleanupUser</span>(dbPool<span class="op">,</span> user<span class="op">.</span><span class="at">id</span>)<span class="op">;</span></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'6. Cleanup complete'</span>)<span class="op">;</span></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="co">// Your test</span></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="fu">test</span>(<span class="st">'My test'</span><span class="op">,</span> <span class="kw">async</span> ({ testUser }) <span class="kw">=&gt;</span> {</span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'TEST: Got user:'</span><span class="op">,</span> testUser<span class="op">.</span><span class="at">email</span>)<span class="op">;</span></span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... test code ...</span></span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'TEST: Finished'</span>)<span class="op">;</span></span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Your fixture definition</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>testUser<span class="op">:</span> <span class="kw">async</span> ({ dbPool }<span class="op">,</span> use) <span class="kw">=&gt;</span> {</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'1. Setup: Creating user...'</span>)<span class="op">;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> user <span class="op">=</span> <span class="cf">await</span> <span class="fu">createTestUser</span>(dbPool<span class="op">,</span> baseUrl)<span class="op">;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'2. User created:'</span><span class="op">,</span> user<span class="op">.</span><span class="at">email</span>)<span class="op">;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'3. About to call use()...'</span>)<span class="op">;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">use</span>(user)<span class="op">;</span>  <span class="co">// ← MAGIC HAPPENS HERE</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'4. use() returned, test is done!'</span>)<span class="op">;</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'5. Teardown: Cleaning up...'</span>)<span class="op">;</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">cleanupUser</span>(dbPool<span class="op">,</span> user<span class="op">.</span><span class="at">id</span>)<span class="op">;</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'6. Cleanup complete'</span>)<span class="op">;</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="co">// Your test</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="fu">test</span>(<span class="st">'My test'</span><span class="op">,</span> <span class="kw">async</span> ({ testUser }) <span class="kw">=&gt;</span> {</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'TEST: Got user:'</span><span class="op">,</span> testUser<span class="op">.</span><span class="at">email</span>)<span class="op">;</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... test code ...</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">'TEST: Finished'</span>)<span class="op">;</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
 <p><strong>Execution Order:</strong></p>
-<pre><code>1. Setup: Creating user...
-2. User created: test_abc123@example.com
-3. About to call use()...
-   ┌─────────────────────────────────┐
-   │ TEST: Got user: test_abc123... │ ← Test runs here
-   │ ... test code executes ...     │
-   │ TEST: Finished                 │
-   └─────────────────────────────────┘
-4. use() returned, test is done!
-5. Teardown: Cleaning up...
-6. Cleanup complete</code></pre>
+<ol class="flow">
+<li>
+<strong>Setup: Creating user…</strong>The fixture body runs top to bottom.
+</li>
+<li>
+<strong>User created: <code>test_abc123@example.com</code></strong>
+</li>
+<li>
+<strong>About to call <code>use()</code>…</strong>The fixture is about to hand control over and suspend itself.
+</li>
+<li class="is-test">
+<strong>The test runs here</strong><code>TEST: Got user: test_abc123…</code><br><code>… test code executes …</code><br><code>TEST: Finished</code>
+</li>
+<li class="is-teardown">
+<strong><code>use()</code> returned, test is done!</strong>Control resumes on the line <em>after</em> <code>use()</code>.
+</li>
+<li class="is-teardown">
+<strong>Teardown: Cleaning up…</strong>
+</li>
+<li class="is-teardown">
+<strong>Cleanup complete</strong>
+</li>
+</ol>
 <h3 id="real-example-complete-fixture-trace">Real Example: Complete Fixture Trace</h3>
 <p>When you write:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">test</span>(<span class="st">'Submitting answer shows feedback'</span><span class="op">,</span> <span class="kw">async</span> ({ authenticatedPage<span class="op">,</span> testSentence }) <span class="kw">=&gt;</span> {</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> authenticatedPage<span class="op">.</span><span class="fu">goto</span>(<span class="vs">`</span><span class="sc">${</span>BASE_URL<span class="sc">}</span><span class="vs">/learn`</span>)<span class="op">;</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... test code</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">test</span>(<span class="st">'Submitting answer shows feedback'</span><span class="op">,</span> <span class="kw">async</span> ({ authenticatedPage<span class="op">,</span> testSentence }) <span class="kw">=&gt;</span> {</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> authenticatedPage<span class="op">.</span><span class="fu">goto</span>(<span class="vs">`</span><span class="sc">${</span>BASE_URL<span class="sc">}</span><span class="vs">/learn`</span>)<span class="op">;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... test code</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
 <p><strong>What actually happens:</strong></p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 1. dbPool fixture starts</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> pool <span class="op">=</span> <span class="kw">new</span> pg<span class="op">.</span><span class="fu">Pool</span>({ connectionString<span class="op">:</span> DATABASE_URL })<span class="op">;</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">// (pauses at await use(pool))</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co">// 2. testUser fixture starts (needs dbPool)</span></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> user <span class="op">=</span> <span class="cf">await</span> <span class="fu">createTestUser</span>(dbPool<span class="op">,</span> baseUrl)<span class="op">;</span></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co">// (pauses at await use(user))</span></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="co">// 3. testSentence fixture starts (needs dbPool)</span></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> sentence <span class="op">=</span> <span class="cf">await</span> <span class="fu">createTestSentence</span>(dbPool)<span class="op">;</span></span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co">// (pauses at await use(sentence))</span></span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="co">// 4. page fixture starts (built-in)</span></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="co">// Browser opens, page created</span></span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="co">// (pauses at await use(page))</span></span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="co">// 5. authenticatedPage fixture starts</span></span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> sentences <span class="op">=</span> <span class="cf">await</span> <span class="fu">createTestSentences</span>(dbPool<span class="op">,</span> <span class="dv">3</span><span class="op">,</span> <span class="st">'n5'</span>)<span class="op">;</span></span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> <span class="fu">loginUser</span>(page<span class="op">,</span> testUser<span class="op">,</span> baseUrl)<span class="op">;</span></span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a><span class="co">// (pauses at await use(page))</span></span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="co">// 6. NOW YOUR </span><span class="al">TEST</span><span class="co"> RUNS</span></span>
-<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> authenticatedPage<span class="op">.</span><span class="fu">goto</span>(<span class="vs">`</span><span class="sc">${</span>BASE_URL<span class="sc">}</span><span class="vs">/learn`</span>)<span class="op">;</span></span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a><span class="co">// ... rest of test code ...</span></span>
-<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a><span class="co">// 7. Test finishes, teardown starts (REVERSE ORDER)</span></span>
-<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a><span class="co">// 7a. authenticatedPage teardown</span></span>
-<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (<span class="kw">const</span> sentence <span class="kw">of</span> sentences) {</span>
-<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">cleanupSentence</span>(dbPool<span class="op">,</span> sentence<span class="op">.</span><span class="at">id</span>)<span class="op">;</span></span>
-<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a><span class="co">// 7b. page teardown (browser closes)</span></span>
-<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a><span class="co">// 7c. testSentence teardown</span></span>
-<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> <span class="fu">cleanupSentence</span>(dbPool<span class="op">,</span> sentence<span class="op">.</span><span class="at">id</span>)<span class="op">;</span></span>
-<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a><span class="co">// 7d. testUser teardown</span></span>
-<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> <span class="fu">cleanupUser</span>(dbPool<span class="op">,</span> user<span class="op">.</span><span class="at">id</span>)<span class="op">;</span></span>
-<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a><span class="co">// 7e. dbPool teardown</span></span>
-<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> pool<span class="op">.</span><span class="fu">end</span>()<span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 1. dbPool fixture starts</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> pool <span class="op">=</span> <span class="kw">new</span> pg<span class="op">.</span><span class="fu">Pool</span>({ connectionString<span class="op">:</span> DATABASE_URL })<span class="op">;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co">// (pauses at await use(pool))</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co">// 2. testUser fixture starts (needs dbPool)</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> user <span class="op">=</span> <span class="cf">await</span> <span class="fu">createTestUser</span>(dbPool<span class="op">,</span> baseUrl)<span class="op">;</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co">// (pauses at await use(user))</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co">// 3. testSentence fixture starts (needs dbPool)</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> sentence <span class="op">=</span> <span class="cf">await</span> <span class="fu">createTestSentence</span>(dbPool)<span class="op">;</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co">// (pauses at await use(sentence))</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="co">// 4. page fixture starts (built-in)</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co">// Browser opens, page created</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co">// (pauses at await use(page))</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="co">// 5. authenticatedPage fixture starts</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> sentences <span class="op">=</span> <span class="cf">await</span> <span class="fu">createTestSentences</span>(dbPool<span class="op">,</span> <span class="dv">3</span><span class="op">,</span> <span class="st">'n5'</span>)<span class="op">;</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> <span class="fu">loginUser</span>(page<span class="op">,</span> testUser<span class="op">,</span> baseUrl)<span class="op">;</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="co">// (pauses at await use(page))</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="co">// 6. NOW YOUR </span><span class="al">TEST</span><span class="co"> RUNS</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> authenticatedPage<span class="op">.</span><span class="fu">goto</span>(<span class="vs">`</span><span class="sc">${</span>BASE_URL<span class="sc">}</span><span class="vs">/learn`</span>)<span class="op">;</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a><span class="co">// ... rest of test code ...</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a><span class="co">// 7. Test finishes, teardown starts (REVERSE ORDER)</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a><span class="co">// 7a. authenticatedPage teardown</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (<span class="kw">const</span> sentence <span class="kw">of</span> sentences) {</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">cleanupSentence</span>(dbPool<span class="op">,</span> sentence<span class="op">.</span><span class="at">id</span>)<span class="op">;</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a><span class="co">// 7b. page teardown (browser closes)</span></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a><span class="co">// 7c. testSentence teardown</span></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> <span class="fu">cleanupSentence</span>(dbPool<span class="op">,</span> sentence<span class="op">.</span><span class="at">id</span>)<span class="op">;</span></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a><span class="co">// 7d. testUser teardown</span></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> <span class="fu">cleanupUser</span>(dbPool<span class="op">,</span> user<span class="op">.</span><span class="at">id</span>)<span class="op">;</span></span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a><span class="co">// 7e. dbPool teardown</span></span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> pool<span class="op">.</span><span class="fu">end</span>()<span class="op">;</span></span></code></pre></div>
 <h2 id="integration-vs.-regression">6. Integration vs. Regression</h2>
 <p>We use Playwright for both:</p>
 <ul>
@@ -421,13 +372,32 @@ testSentence depends on:
 <li><strong>Regression Testing</strong>: By running these tests on every commit, we ensure that new changes haven’t broken existing features. The <code>User can register</code> test is a regression test that guards the critical registration path.</li>
 </ul>
 <h3 id="the-test-pyramid">The Test Pyramid</h3>
-<pre><code>        /\
-       /E2E\          ← E2E tests (playwright.spec.ts)
-      /------\
-     /Integration\    ← Integration tests (integration_handlers.rs)
-    /------------\
-   /    Unit      \   ← Unit tests (in src/ modules)
-  /----------------\</code></pre>
+<figure class="diagram fig-pyramid">
+<svg viewBox="0 0 560 290" role="img" aria-labelledby="pyr-title pyr-desc">
+<title id="pyr-title">
+The test pyramid
+</title>
+<desc id="pyr-desc">Three tiers. A wide base of fast unit tests in src modules, a narrower band of integration tests in integration_handlers.rs, and a small cap of end-to-end tests in playwright.spec.ts.</desc>
+<polygon class="p-band unit" points="84.3,175 255.7,175 300,250 40,250"></polygon>
+<polygon class="p-band integration" points="128.6,100 211.4,100 255.7,175 84.3,175"></polygon>
+<polygon class="p-band e2e" points="170,30 211.4,100 128.6,100"></polygon>
+<text class="d-label" x="170" y="92" text-anchor="middle">E2E</text>
+<text class="d-label" x="170" y="145" text-anchor="middle">Integration</text>
+<text class="d-label" x="170" y="220" text-anchor="middle">Unit</text>
+<line class="d-rule" x1="214" y1="92" x2="330" y2="92"></line>
+<line class="d-rule" x1="246" y1="145" x2="330" y2="145"></line>
+<line class="d-rule" x1="290" y1="220" x2="330" y2="220"></line>
+<text class="d-label" x="338" y="88">E2E tests</text>
+<text class="d-note" x="338" y="104">playwright.spec.ts</text>
+<text class="d-label" x="338" y="141">Integration tests</text>
+<text class="d-note" x="338" y="157">integration_handlers.rs</text>
+<text class="d-label" x="338" y="216">Unit tests</text>
+<text class="d-note" x="338" y="232">in src/ modules</text>
+</svg>
+<figcaption>
+Fewer and slower towards the top; more numerous and faster towards the base.
+</figcaption>
+</figure>
 <p><strong>Test Types:</strong></p>
 <ul>
 <li><strong>Unit Tests</strong>: Fast, isolated (e.g., scoring function)</li>
@@ -436,20 +406,20 @@ testSentence depends on:
 </ul>
 <h3 id="how-tests-overlap">How Tests Overlap</h3>
 <p>A test can be <strong>both</strong> integration and regression:</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">// From your state_consistency.rs</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span><span class="pp">tokio::</span>test<span class="at">]</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">fn</span> test_submission_creates_consistent_state() <span class="op">{</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// This is BOTH:</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 1. Integration test: Tests handler + service + DB + transactions</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 2. Regression test: Ensures state consistency doesn't break after changes</span></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Test that submission updates:</span></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">// - submissions table</span></span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">// - user_progress table  </span></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// - daily_stats table</span></span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">// All in one transaction (integration)</span></span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">// And this should never break (regression)</span></span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">// From your state_consistency.rs</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span><span class="pp">tokio::</span>test<span class="at">]</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">fn</span> test_submission_creates_consistent_state() <span class="op">{</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// This is BOTH:</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 1. Integration test: Tests handler + service + DB + transactions</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 2. Regression test: Ensures state consistency doesn't break after changes</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Test that submission updates:</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">// - submissions table</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">// - user_progress table  </span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// - daily_stats table</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">// All in one transaction (integration)</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">// And this should never break (regression)</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <h2 id="common-folder-organization-patterns">7. Common Folder Organization Patterns</h2>
 <h3 id="pattern-1-feature-based-recommended-for-larger-projects">Pattern 1: Feature-Based (Recommended for Larger Projects)</h3>
 <pre><code>tests/
