@@ -2,77 +2,83 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>$title$ &middot; ngublag</title>
     <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
-    <title>Welcome - $title$</title>
-        <!-- Pure CSS CDN -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Tangerine:wght@700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Syntax Highlighting -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/night-owl.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script>hljs.highlightAll();</script>
-    <!-- Pure CSS Grids Responsive CDN -->
-    <link rel="stylesheet" href="/css/default.css" />
+    <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
+
+    <!-- Set the theme before first paint to avoid a flash of the wrong one. -->
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme');
+                if (stored === 'light' || stored === 'dark') {
+                    document.documentElement.setAttribute('data-theme', stored);
+                }
+            } catch (e) {}
+        }());
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Tangerine:wght@700&display=swap">
+    <link rel="stylesheet" href="/css/default.css">
 </head>
-<body>    
+<body>
 
-<div id="layout">
-    <!-- menu toggle -->
-    <a href="#menu" id="menuLink" class="menu-link">
-        <!-- Hamburger icon -->
-         <span></span>
-    </a>
+<a class="skip-link" href="#main">Skip to content</a>
 
-    <div id="menu">
-        <div class="pure-menu">
-            <a href="/" class="menu-logo-link">
-                <div class="logo-container">
-                    <img src="/images/logo.svg?height=120&width=120" alt="Logo" class="logo">
-                    <div class="logo-text">Brothel <br/> for Slaking <br/> Intellectual Lusts</div>
-                </div>
-            </a>
+<header class="site-header">
+    <div class="wrap header-inner">
+        <a class="brand" href="/">
+            <img class="brand-mark" src="/images/logo.svg" alt="" width="40" height="40">
+            <span class="brand-text">
+                <span class="brand-name">ngublag</span>
+                <span class="brand-tag">Brothel for Slaking Intellectual Lusts</span>
+            </span>
+        </a>
 
-            <div class="social-links">
-                <a href="https://github.com/ardfard" class="social-link" target="_blank" rel="noopener">
-                    <i class="fa-brands fa-github"></i>
-                </a>
-                <a href="https://linkedin.com/in/ardin-fardiansyah-74500a56/" class="social-link" target="_blank" rel="noopener">
-                    <i class="fa-brands fa-linkedin"></i>
-                </a>
-                <a href="https://twitter.com/ardfard101" class="social-link" target="_blank" rel="noopener">
-                    <i class="fa-brands fa-x-twitter"></i>
-                </a>
-                <a href="https://bsky.app/profile/ardfard.bsky.social" class="social-link" target="_blank" rel="noopener">
-                    <i class="fa-solid fa-feather"></i>
-                </a>
-            </div>
-
-            <ul class="pure-menu-list">
-                <li class="pure-menu-item"><a href="/" class="pure-menu-link">Home</a> </li>
-                <li class="pure-menu-item"><a href="/about.html" class="pure-menu-link">About</a> </li>
-                <li class="pure-menu-item"><a href="/posts.html" class="pure-menu-link">Posts</a> </li>
-            </ul>
-        </div>
+        <nav class="site-nav" aria-label="Main">
+            <a href="/">Home</a>
+            <a href="/posts.html">Posts</a>
+            <a href="/about.html">About</a>
+            <button type="button" class="theme-toggle" id="themeToggle"
+                    aria-label="Toggle dark mode" title="Toggle dark mode">
+                <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>
+                </svg>
+                <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="4"/>
+                    <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+                </svg>
+            </button>
+        </nav>
     </div>
+</header>
 
-    <div id="main">    
-        <div class="header">
-            <h1>$title$</h1>
-        </div>
-        <div class="content">   
+<main class="page" id="main">
+    <div class="wrap">
+        <h1 class="page-title">$title$</h1>
+        <div class="content">
             $body$
         </div>
-        <div id="footer">
-            <p>Powered by <a href="http://jaspervdj.be/hakyll">Hakyll</a></p>
-        </div>
     </div>
-</div>
+</main>
+
+<footer class="site-footer">
+    <div class="wrap footer-inner">
+        <div class="footer-links">
+            <a href="https://github.com/ardfard" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://linkedin.com/in/ardin-fardiansyah-74500a56/" target="_blank" rel="noopener">LinkedIn</a>
+            <a href="https://twitter.com/ardfard101" target="_blank" rel="noopener">X</a>
+            <a href="https://bsky.app/profile/ardfard.bsky.social" target="_blank" rel="noopener">Bluesky</a>
+        </div>
+        <p class="footer-note">Ardin Fardiansyah &middot; built with <a href="http://jaspervdj.be/hakyll">Hakyll</a></p>
+    </div>
+</footer>
 
 <script src="/js/ui.js"></script>
 </body>

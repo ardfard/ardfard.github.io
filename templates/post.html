@@ -1,16 +1,7 @@
-<div class="subheader">
-    <small>
-        <i>
-            Posted on $date$
-            $if(author)$
-                by $author$
-            $endif$
-        </i>
-    </small>
-</div>
+<p class="post-meta">
+    <time>$date$</time>$if(author)$ &middot; $author$$endif$
+</p>
+
 <article>
-    
-    <section>
-        $body$
-    </section>
+    $body$
 </article>

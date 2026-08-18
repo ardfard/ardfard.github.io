@@ -1,54 +1,53 @@
-(function (window, document) {
+(function (document, window) {
+    'use strict';
 
-    // we fetch the elements each time because docusaurus removes the previous
-    // element references on page navigation
-    function getElements() {
-        return {
-            layout: document.getElementById('layout'),
-            menu: document.getElementById('menu'),
-            menuLink: document.getElementById('menuLink')
-        };
+    var root = document.documentElement;
+    var STORAGE_KEY = 'theme';
+
+    function systemTheme() {
+        return window.matchMedia &&
+               window.matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'dark'
+            : 'light';
     }
 
-    function toggleClass(element, className) {
-        var classes = element.className.split(/\s+/);
-        var length = classes.length;
-        var i = 0;
+    function currentTheme() {
+        return root.getAttribute('data-theme') || systemTheme();
+    }
 
-        for (; i < length; i++) {
-            if (classes[i] === className) {
-                classes.splice(i, 1);
-                break;
+    function setTheme(theme) {
+        root.setAttribute('data-theme', theme);
+        try {
+            window.localStorage.setItem(STORAGE_KEY, theme);
+        } catch (e) {}
+    }
+
+    var toggle = document.getElementById('themeToggle');
+
+    if (toggle) {
+        toggle.addEventListener('click', function () {
+            setTheme(currentTheme() === 'dark' ? 'light' : 'dark');
+        });
+    }
+
+    // Follow the OS until the reader makes an explicit choice.
+    if (window.matchMedia) {
+        var query = window.matchMedia('(prefers-color-scheme: dark)');
+        var onChange = function (event) {
+            var stored;
+            try {
+                stored = window.localStorage.getItem(STORAGE_KEY);
+            } catch (e) {}
+
+            if (stored !== 'light' && stored !== 'dark') {
+                root.setAttribute('data-theme', event.matches ? 'dark' : 'light');
             }
-        }
-        // The className is not found
-        if (length === classes.length) {
-            classes.push(className);
-        }
+        };
 
-        element.className = classes.join(' ');
-    }
-
-    function toggleAll() {
-        var active = 'active';
-        var elements = getElements();
-
-        toggleClass(elements.layout, active);
-        toggleClass(elements.menu, active);
-        toggleClass(elements.menuLink, active);
-    }
-    
-    function handleEvent(e) {
-        var elements = getElements();
-        
-        if (e.target.id === elements.menuLink.id) {
-            toggleAll();
-            e.preventDefault();
-        } else if (elements.menu.className.indexOf('active') !== -1) {
-            toggleAll();
+        if (query.addEventListener) {
+            query.addEventListener('change', onChange);
+        } else if (query.addListener) {
+            query.addListener(onChange);
         }
     }
-    
-    document.addEventListener('click', handleEvent);
-
-}(this, this.document));
+}(document, window));

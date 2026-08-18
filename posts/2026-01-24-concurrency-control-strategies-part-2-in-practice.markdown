@@ -1,4 +1,4 @@
--- 
+---
 title: "Concurrency Control Strategies"
 date: "2026-01-24"
 tags: "locks, synchronization, concurrency"

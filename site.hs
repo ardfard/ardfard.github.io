@@ -62,7 +62,8 @@ main = hakyll $ do
         route idRoute
         compile $ do
             allPosts <- loadAll "posts/*"
-            posts <- recentFirst $ filterDrafts allPosts
+            -- The home page shows only the latest few; posts.html is the archive.
+            posts <- take 6 <$> recentFirst (filterDrafts allPosts)
             let indexCtx =
                     listField "posts" postCtx (return posts) `mappend`
                     defaultContext
