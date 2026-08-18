@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>PostgreSQL Isolation Levels &middot; ngublag</title>
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+    <link rel="apple-touch-icon" href="../images/apple-touch-icon.png">
+
+    <!-- Set the theme before first paint to avoid a flash of the wrong one. -->
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme');
+                if (stored === 'light' || stored === 'dark') {
+                    document.documentElement.setAttribute('data-theme', stored);
+                }
+            } catch (e) {}
+        }());
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Tangerine:wght@700&display=swap">
+    <link rel="stylesheet" href="../css/default.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+    <div class="wrap header-inner">
+        <a class="brand" href="../">
+            <img class="brand-mark" src="../images/logo.svg" alt width="40" height="40">
+            <span class="brand-text">
+                <span class="brand-name">ngublag</span>
+                <span class="brand-tag">Brothel for Slaking Intellectual Lusts</span>
+            </span>
+        </a>
+
+        <nav class="site-nav" aria-label="Main">
+            <a href="../">Home</a>
+            <a href="../posts.html">Posts</a>
+            <a href="../about.html">About</a>
+            <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+                <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"></path>
+                </svg>
+                <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+                </svg>
+            </button>
+        </nav>
+    </div>
+</header>
+
+<main class="page" id="main">
+    <div class="wrap">
+        <h1 class="page-title">PostgreSQL Isolation Levels</h1>
+        <div class="content">
+            <p class="post-meta">
+    <time>August 18, 2026</time>
+</p>
+
+<article>
+    <h2 id="introduction">Introduction</h2>
+<p>Transaction isolation is a fundamental concept in database systems that determines how transactions interact with each other. PostgreSQL implements all four SQL standard isolation levels, plus additional behaviors.</p>
+<h2 id="the-four-isolation-levels">The Four Isolation Levels</h2>
+<h3 id="read-uncommitted">1. Read Uncommitted</h3>
+<p>Lowest isolation level. Transactions can see uncommitted changes from other transactions.</p>
+<p><strong>Characteristics:</strong>
+- Can read data that hasn’t been committed yet
+- Prone to dirty reads, non-repeatable reads, and phantom reads
+- PostgreSQL treats this as READ COMMITTED (doesn’t truly support READ UNCOMMITTED)</p>
+<p><strong>Use Case:</strong> Rarely used; PostgreSQL doesn’t implement it per SQL standard.</p>
+<h3 id="read-committed-postgresql-default">2. Read Committed (PostgreSQL Default)</h3>
+<p>Each transaction sees only data committed before it began.</p>
+<p><strong>Characteristics:</strong>
+- Prevents dirty reads
+- Allows non-repeatable reads and phantom reads
+- SELECT statement creates a snapshot at execution time
+- UPDATE/DELETE use exclusive locks</p>
+<p><strong>Example:</strong></p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Transaction 1</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span>;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">SET</span> <span class="kw">TRANSACTION</span> <span class="kw">ISOLATION</span> <span class="kw">LEVEL</span> <span class="kw">READ</span> <span class="kw">COMMITTED</span>;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> balance <span class="kw">FROM</span> accounts <span class="kw">WHERE</span> <span class="kw">id</span> <span class="op">=</span> <span class="dv">1</span>;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">-- Returns $1000</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">-- Transaction 2 (concurrent)</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span>;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="kw">UPDATE</span> accounts <span class="kw">SET</span> balance <span class="op">=</span> balance <span class="op">+</span> <span class="dv">100</span> <span class="kw">WHERE</span> <span class="kw">id</span> <span class="op">=</span> <span class="dv">1</span>;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="kw">COMMIT</span>;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">-- Transaction 1</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> balance <span class="kw">FROM</span> accounts <span class="kw">WHERE</span> <span class="kw">id</span> <span class="op">=</span> <span class="dv">1</span>;</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">-- Returns $1100 (different value - non-repeatable read)</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="kw">COMMIT</span>;</span></code></pre></div>
+<p><strong>Use Cases:</strong>
+- Most general-purpose applications
+- Web applications
+- When you need to see committed changes as soon as possible</p>
+<h3 id="repeatable-read">3. Repeatable Read</h3>
+<p>Transaction sees a snapshot as of its first SELECT statement.</p>
+<p><strong>Characteristics:</strong>
+- Prevents dirty reads and non-repeatable reads
+- Allows phantom reads (but PostgreSQL prevents them with predicate locking)
+- All queries see consistent data from the same snapshot
+- May fail with serialization errors on concurrent updates</p>
+<p><strong>Example:</strong></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Transaction 1</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span>;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">SET</span> <span class="kw">TRANSACTION</span> <span class="kw">ISOLATION</span> <span class="kw">LEVEL</span> REPEATABLE <span class="kw">READ</span>;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> balance <span class="kw">FROM</span> accounts <span class="kw">WHERE</span> <span class="kw">id</span> <span class="op">=</span> <span class="dv">1</span>;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">-- Returns $1000</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">-- Transaction 2 (concurrent)</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span>;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="kw">UPDATE</span> accounts <span class="kw">SET</span> balance <span class="op">=</span> balance <span class="op">+</span> <span class="dv">100</span> <span class="kw">WHERE</span> <span class="kw">id</span> <span class="op">=</span> <span class="dv">1</span>;</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="kw">COMMIT</span>;</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">-- Transaction 1</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> balance <span class="kw">FROM</span> accounts <span class="kw">WHERE</span> <span class="kw">id</span> <span class="op">=</span> <span class="dv">1</span>;</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">-- Still returns $1000 (consistent snapshot)</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="kw">COMMIT</span>;</span></code></pre></div>
+<p><strong>Use Cases:</strong>
+- Reports that need consistent data
+- Multi-step operations requiring data stability
+- When you don’t need to see other transactions’ changes</p>
+<h3 id="serializable">4. Serializable</h3>
+<p>Highest isolation level. Transactions appear to execute sequentially.</p>
+<p><strong>Characteristics:</strong>
+- Prevents dirty reads, non-repeatable reads, and phantom reads
+- Guarantees serializable execution
+- May fail with serialization errors
+- PostgreSQL uses Serializable Snapshot Isolation (SSI)</p>
+<p><strong>Example:</strong></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Transaction 1</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span>;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">SET</span> <span class="kw">TRANSACTION</span> <span class="kw">ISOLATION</span> <span class="kw">LEVEL</span> <span class="kw">SERIALIZABLE</span>;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> products <span class="kw">WHERE</span> quantity <span class="op">&gt;</span> <span class="dv">0</span>;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">-- Returns products A, B, C</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co">-- Transaction 2 (concurrent)</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span>;</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="kw">UPDATE</span> products <span class="kw">SET</span> quantity <span class="op">=</span> <span class="dv">0</span> <span class="kw">WHERE</span> <span class="kw">id</span> <span class="op">=</span> <span class="st">'A'</span>;</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="kw">COMMIT</span>;</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co">-- Transaction 1</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="kw">UPDATE</span> products <span class="kw">SET</span> quantity <span class="op">=</span> quantity <span class="op">-</span> <span class="dv">1</span> <span class="kw">WHERE</span> <span class="kw">id</span> <span class="op">=</span> <span class="st">'B'</span>;</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="co">-- May fail with serialization error if dependency detected</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="kw">COMMIT</span>;</span></code></pre></div>
+<p><strong>Use Cases:</strong>
+- Financial transactions
+- Inventory management
+- Systems requiring strong consistency guarantees</p>
+<h2 id="postgresql-specific-behaviors">PostgreSQL-Specific Behaviors</h2>
+<h3 id="mvcc-multi-version-concurrency-control">MVCC (Multi-Version Concurrency Control)</h3>
+<p>PostgreSQL uses MVCC to implement isolation:
+- Multiple versions of rows exist simultaneously
+- Readers don’t block writers and vice versa
+- Each transaction sees its own snapshot of the database</p>
+<h3 id="write-skew-prevention">Write Skew Prevention</h3>
+<p>PostgreSQL’s REPEATABLE READ and SERIALIZABLE prevent write skew:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Two concurrent transactions checking constraints and modifying related data</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- Both might succeed in other databases but fail in PostgreSQL with serialization error</span></span></code></pre></div>
+<h3 id="advisory-locks">Advisory Locks</h3>
+<p>For application-level locking:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> pg_advisory_xact_lock(<span class="dv">12345</span>);</span></code></pre></div>
+<h2 id="choosing-the-right-isolation-level">Choosing the Right Isolation Level</h2>
+<table>
+<thead>
+<tr>
+<th>Isolation Level</th>
+<th>Performance</th>
+<th>Consistency</th>
+<th>When to Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Read Committed</td>
+<td>High</td>
+<td>Medium</td>
+<td>Most applications (default)</td>
+</tr>
+<tr>
+<td>Repeatable Read</td>
+<td>Medium</td>
+<td>High</td>
+<td>Reports, analytics</td>
+</tr>
+<tr>
+<td>Serializable</td>
+<td>Low</td>
+<td>Very High</td>
+<td>Financial systems, critical operations</td>
+</tr>
+</tbody>
+</table>
+<h2 id="common-pitfalls">Common Pitfalls</h2>
+<ol type="1">
+<li><strong>Deadlocks:</strong> Higher isolation levels increase deadlock risk</li>
+<li><strong>Serialization Failures:</strong> SERIALIZABLE may need retry logic</li>
+<li><strong>Long Transactions:</strong> Keep transactions short to avoid conflicts</li>
+<li><strong>Implicit Locks:</strong> Operations like SELECT FOR UPDATE affect behavior</li>
+</ol>
+<h2 id="monitoring-isolation-issues">Monitoring Isolation Issues</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Check for serialization failures</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> pg_stat_database_conflicts;</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- View current transaction state</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> pg_stat_activity;</span></code></pre></div>
+<h2 id="best-practices">Best Practices</h2>
+<ol type="1">
+<li><strong>Start with READ COMMITTED</strong> - Use higher levels only when needed</li>
+<li><strong>Keep transactions short</strong> - Minimize time between BEGIN and COMMIT</li>
+<li><strong>Implement retry logic</strong> - For SERIALIZABLE isolation level</li>
+<li><strong>Use appropriate locking</strong> - SELECT FOR UPDATE, SELECT FOR SHARE</li>
+<li><strong>Monitor performance</strong> - Higher isolation levels impact throughput</li>
+<li><strong>Test thoroughly</strong> - Isolation issues often appear only under load</li>
+</ol>
+<h2 id="conclusion">Conclusion</h2>
+<p>PostgreSQL’s isolation levels provide flexible consistency guarantees. Understanding their trade-offs helps you choose the right level for your application’s needs while balancing performance and correctness.</p>
+</article>
+
+        </div>
+    </div>
+</main>
+
+<footer class="site-footer">
+    <div class="wrap footer-inner">
+        <div class="footer-links">
+            <a href="https://github.com/ardfard" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://linkedin.com/in/ardin-fardiansyah-74500a56/" target="_blank" rel="noopener">LinkedIn</a>
+            <a href="https://twitter.com/ardfard101" target="_blank" rel="noopener">X</a>
+            <a href="https://bsky.app/profile/ardfard.bsky.social" target="_blank" rel="noopener">Bluesky</a>
+        </div>
+        <p class="footer-note">Ardin Fardiansyah &middot; built with <a href="http://jaspervdj.be/hakyll">Hakyll</a></p>
+    </div>
+</footer>
+
+<script src="../js/ui.js"></script>
+</body>
+</html>

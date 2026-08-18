@@ -20,6 +20,24 @@
     --accent-hover:  #1d4462;
     --mark:          #fdf3c4;
 
+    /* Diagram accents (inline SVG figures) */
+    --fig-blue:      #2e6288;
+    --fig-blue-bg:   #e7eef5;
+    --fig-amber:     #9c5620;
+    --fig-amber-bg:  #f6ece0;
+
+    /* Skylighting tokens (Pandoc highlights at build time — no client-side
+       highlighter needed) */
+    --syn-comment:   #8a8177;
+    --syn-keyword:   #96326b;
+    --syn-string:    #3c6e3a;
+    --syn-number:    #a35a1a;
+    --syn-func:      #2e6288;
+    --syn-type:      #7a4ba0;
+    --syn-builtin:   #b1500f;
+    --syn-var:       #2f5f63;
+    --syn-error:     #b1321f;
+
     /* Type */
     --font-prose: "Source Serif 4", Charter, "Iowan Old Style", Georgia, serif;
     --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
@@ -32,8 +50,13 @@
     --radius: 6px;
 }
 
-/* Dark theme. Duplicated across the two selectors so that readers without
-   JavaScript still get the system preference honoured. */
+/* Dark theme.
+   IMPORTANT: the two rules below must declare exactly the same tokens. The
+   first handles an explicit choice from the theme toggle; the second is the
+   no-JavaScript fallback that honours the OS setting. Plain CSS cannot share
+   one declaration block across an @media boundary, so if you add a token,
+   add it to BOTH — a token present in only one produces a light value on a
+   dark background (invisible text). */
 :root[data-theme="dark"] {
     color-scheme: dark;
     --bg:           #171614;
@@ -46,6 +69,19 @@
     --accent:       #8ab6da;
     --accent-hover: #aacdea;
     --mark:         #4a421f;
+    --fig-blue:     #8ab6da;
+    --fig-blue-bg:  #1f2b35;
+    --fig-amber:    #e0a06a;
+    --fig-amber-bg: #322619;
+    --syn-comment:  #7d7669;
+    --syn-keyword:  #e08aba;
+    --syn-string:   #a7cc8c;
+    --syn-number:   #e4b380;
+    --syn-func:     #8ab6da;
+    --syn-type:     #c3a2e3;
+    --syn-builtin:  #e9a16b;
+    --syn-var:      #86c5c2;
+    --syn-error:    #e9756b;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -61,6 +97,19 @@
         --accent:       #8ab6da;
         --accent-hover: #aacdea;
         --mark:         #4a421f;
+        --fig-blue:     #8ab6da;
+        --fig-blue-bg:  #1f2b35;
+        --fig-amber:    #e0a06a;
+        --fig-amber-bg: #322619;
+        --syn-comment:  #7d7669;
+        --syn-keyword:  #e08aba;
+        --syn-string:   #a7cc8c;
+        --syn-number:   #e4b380;
+        --syn-func:     #8ab6da;
+        --syn-type:     #c3a2e3;
+        --syn-builtin:  #e9a16b;
+        --syn-var:      #86c5c2;
+        --syn-error:    #e9756b;
     }
 }
 
@@ -392,6 +441,82 @@ body {
     text-align: center;
 }
 
+/* --- Inline SVG diagrams --------------------------------------------------- */
+
+/* Figures are drawn with CSS custom properties rather than hard-coded fills,
+   so they re-colour themselves in dark mode along with everything else. */
+.content figure.diagram {
+    margin-block: 2.5em;
+}
+
+.content figure.diagram svg {
+    width: 100%;
+    height: auto;
+    border-radius: 0;
+}
+
+/* Scaling a wide diagram down to a phone would shrink its labels to ~6px, so
+   below the breakpoint let it keep a legible size and scroll sideways, the
+   same way code blocks do. */
+@media (max-width: 34em) {
+    .content figure.diagram {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .content figure.diagram svg {
+        min-width: 560px;
+    }
+}
+
+.diagram .d-head {
+    fill: var(--text-muted);
+    font: 600 11px var(--font-ui);
+    letter-spacing: 0.07em;
+}
+
+.diagram .d-time {
+    fill: var(--text-muted);
+    font: 400 11px var(--font-mono);
+}
+
+.diagram .d-label {
+    fill: var(--text);
+    font: 400 12.5px var(--font-ui);
+}
+
+.diagram .d-note {
+    fill: var(--text-muted);
+    font: 400 11px var(--font-ui);
+}
+
+.diagram .d-emph {
+    fill: var(--fig-blue);
+    font: 600 11px var(--font-ui);
+}
+
+.diagram .d-rule   { stroke: var(--rule); stroke-width: 1; }
+.diagram .d-life   { stroke: var(--rule); stroke-width: 2; stroke-linecap: round; }
+
+.diagram .d-box    { stroke-width: 1.5; }
+.diagram .d-box.r  { fill: var(--fig-blue-bg);  stroke: var(--fig-blue); }
+.diagram .d-box.w  { fill: var(--fig-amber-bg); stroke: var(--fig-amber); }
+.diagram .d-box.key { stroke-width: 2.5; }
+
+.diagram .d-v1      { fill: var(--fig-blue); }
+.diagram .d-v2      { fill: var(--fig-amber); }
+.diagram .d-v1-old  { fill: var(--fig-blue);  opacity: 0.3; }
+.diagram .d-v2-pend { fill: var(--fig-amber); opacity: 0.3; }
+
+.diagram .d-link {
+    stroke: var(--fig-blue);
+    stroke-width: 1.5;
+    stroke-dasharray: 5 4;
+    fill: none;
+}
+
+.diagram .d-arrow { fill: var(--fig-blue); }
+
 .content table {
     width: 100%;
     border-collapse: collapse;
@@ -473,46 +598,8 @@ pre code {
     margin-block: 0;
 }
 
-/* Skylighting tokens (emitted by Pandoc at build time — no client-side
-   highlighter needed). */
-:root {
-    --syn-comment: #8a8177;
-    --syn-keyword: #96326b;
-    --syn-string:  #3c6e3a;
-    --syn-number:  #a35a1a;
-    --syn-func:    #2e6288;
-    --syn-type:    #7a4ba0;
-    --syn-builtin: #b1500f;
-    --syn-var:     #2f5f63;
-    --syn-error:   #b1321f;
-}
-
-:root[data-theme="dark"] {
-    --syn-comment: #7d7669;
-    --syn-keyword: #e08aba;
-    --syn-string:  #a7cc8c;
-    --syn-number:  #e4b380;
-    --syn-func:    #8ab6da;
-    --syn-type:    #c3a2e3;
-    --syn-builtin: #e9a16b;
-    --syn-var:     #86c5c2;
-    --syn-error:   #e9756b;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-        --syn-comment: #7d7669;
-        --syn-keyword: #e08aba;
-        --syn-string:  #a7cc8c;
-        --syn-number:  #e4b380;
-        --syn-func:    #8ab6da;
-        --syn-type:    #c3a2e3;
-        --syn-builtin: #e9a16b;
-        --syn-var:     #86c5c2;
-        --syn-error:   #e9756b;
-    }
-}
-
+/* Token colours live with the rest of the design tokens at the top of the
+   file; these rules just map Skylighting's class names onto them. */
 pre code .co, pre code .cv, pre code .do { color: var(--syn-comment); font-style: italic; }
 pre code .kw, pre code .cf                { color: var(--syn-keyword); }
 pre code .op                              { color: var(--text-muted); }
