@@ -729,6 +729,245 @@ p.more-link {
     .skills-section { grid-template-columns: 1fr; }
 }
 
+/* --- About page ----------------------------------------------------------- */
+
+.about-hero {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin: 0.5rem 0 2.25rem;
+}
+
+@media (max-width: 34em) {
+    .about-hero {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+
+.about-portrait {
+    flex-shrink: 0;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--rule);
+    background: var(--bg-subtle);
+    margin: 0.1rem 0 0;
+}
+
+.about-hero-text {
+    min-width: 0;
+}
+
+.about-role {
+    font-family: var(--font-ui);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin: 0 0 0.35rem;
+}
+
+.about-lead {
+    margin: 0 0 0.7rem;
+    font-size: 1.1em;
+    line-height: 1.55;
+}
+
+.about-meta {
+    font-family: var(--font-ui);
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin: 0 0 0.35rem;
+}
+
+.about-links {
+    font-family: var(--font-ui);
+    font-size: 0.875rem;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 1.1rem;
+}
+
+/* --- Experience timeline -------------------------------------------------- */
+
+.timeline {
+    margin: 1.25em 0 0.5em;
+    padding-left: 1.5rem;
+    border-left: 2px solid var(--rule);
+}
+
+.timeline-item {
+    position: relative;
+}
+
+.timeline-item + .timeline-item {
+    margin-top: 1.9rem;
+}
+
+.timeline-item::before {
+    content: "";
+    position: absolute;
+    left: calc(-1.5rem - 1px);
+    transform: translateX(-50%);
+    top: 0.5em;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px var(--bg);
+}
+
+.timeline-item .timeline-title {
+    font-size: 1.05em;
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0;
+}
+
+.timeline-item .timeline-company {
+    color: var(--accent);
+}
+
+.timeline-item .timeline-period {
+    font-family: var(--font-ui);
+    font-size: 0.8125rem;
+    color: var(--text-faint);
+    letter-spacing: 0.02em;
+    margin: 0.15em 0 0.55em;
+}
+
+.timeline-item p {
+    margin: 0;
+}
+
+.timeline-item ul {
+    margin: 0.55em 0 0;
+}
+
+/* --- Tech chips ----------------------------------------------------------- */
+
+.tech-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.85em;
+}
+
+.tech {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+    line-height: 1.4;
+    color: var(--text-muted);
+    background: var(--bg-subtle);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 0.2em 0.75em;
+    white-space: nowrap;
+}
+
+/* --- Education ------------------------------------------------------------ */
+
+.edu-item + .edu-item {
+    margin-top: 1.5em;
+}
+
+.edu-item .edu-title {
+    font-size: 1.05em;
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0;
+}
+
+.edu-item .edu-period {
+    font-family: var(--font-ui);
+    font-size: 0.8125rem;
+    color: var(--text-faint);
+    letter-spacing: 0.02em;
+    margin: 0.15em 0 0.4em;
+}
+
+.edu-item p {
+    margin: 0;
+}
+
+/* --- Selected projects ---------------------------------------------------- */
+
+.projects {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.15rem 2.5rem;
+    margin: 0.9em 0 0;
+}
+
+.project {
+    padding: 0.6em 0;
+    border-bottom: 1px solid var(--rule);
+}
+
+.project a {
+    display: block;
+    text-decoration: none;
+    color: var(--text);
+    transition: color 0.15s ease;
+}
+
+.project a:hover,
+.project a:focus-visible {
+    color: var(--accent);
+}
+
+.project-name {
+    font-weight: 600;
+}
+
+.project-lang {
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-left: 0.5em;
+}
+
+.project-desc {
+    display: block;
+    font-family: var(--font-ui);
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    margin-top: 0.15em;
+}
+
+@media (max-width: 34em) {
+    .projects { grid-template-columns: 1fr; }
+}
+
+/* --- Skills groups -------------------------------------------------------- */
+
+.skill-group {
+    margin: 1.5em 0 0;
+}
+
+.skill-group .skill-group-title {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin: 0 0 0.15em;
+}
+
+.skill-group .tech-tags {
+    margin-top: 0.5em;
+}
+
+/* --- Kind words ----------------------------------------------------------- */
+
 /* --- Footer --------------------------------------------------------------- */
 
 .site-footer {
