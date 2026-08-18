@@ -119,11 +119,11 @@ I started, like most of my generation, in object-oriented programming and its de
 
 ## Portfolio
 
-<div class="projects">
-<div class="project"><a href="https://doitpay.co"><span class="project-name">doitpay.co</span><span class="project-lang">Doitpay</span><span class="project-desc">A payment gateway on Go microservices &mdash; I build it today as Principal Software Engineer.</span></a></div>
-<div class="project"><a href="https://kanjinomic.com"><span class="project-name">kanjinomic.com</span><span class="project-lang">Personal</span><span class="project-desc">Genba, my Japanese-learning app built with Rust, HTMX, and Postgres.</span></a></div>
-<div class="project"><a href="https://siplah.kemendikdasmen.go.id/"><span class="project-name">SIPLah</span><span class="project-lang">GovTech Edu</span><span class="project-desc">Indonesia&rsquo;s e-procurement platform for schools &mdash; I built the marketplace integrations and a transaction data pipeline.</span></a></div>
-<div class="project"><a href="https://bukalapak.com"><span class="project-name">bukalapak.com</span><span class="project-lang">Bukalapak</span><span class="project-desc">One of Indonesia&rsquo;s largest e-commerce platforms &mdash; six years across SRE, DevOps, and payments.</span></a></div>
+<div class="portfolio">
+<div class="portfolio-item"><a class="portfolio-card" href="https://doitpay.co"><img class="portfolio-thumb" src="/images/portfolio-doitpay.jpg" alt="Screenshot of the doitpay.co homepage" width="640" height="400" loading="lazy"><div class="portfolio-body"><div class="portfolio-name">doitpay.co<span class="project-lang">Doitpay</span></div><div class="portfolio-desc">A payment gateway on Go microservices &mdash; I build it today as Principal Software Engineer.</div></div></a></div>
+<div class="portfolio-item"><a class="portfolio-card" href="https://kanjinomic.com"><img class="portfolio-thumb" src="/images/portfolio-kanjinomic.jpg" alt="Screenshot of the kanjinomic.com homepage" width="640" height="400" loading="lazy"><div class="portfolio-body"><div class="portfolio-name">kanjinomic.com<span class="project-lang">Personal</span></div><div class="portfolio-desc">Genba, my Japanese-learning app built with Rust, HTMX, and Postgres.</div></div></a></div>
+<div class="portfolio-item"><a class="portfolio-card" href="https://siplah.kemendikdasmen.go.id/"><img class="portfolio-thumb" src="/images/portfolio-siplah.jpg" alt="Screenshot of the SIPLah homepage" width="640" height="400" loading="lazy"><div class="portfolio-body"><div class="portfolio-name">SIPLah<span class="project-lang">GovTech Edu</span></div><div class="portfolio-desc">Indonesia&rsquo;s e-procurement platform for schools &mdash; I built the marketplace integrations and a transaction data pipeline.</div></div></a></div>
+<div class="portfolio-item"><a class="portfolio-card" href="https://bukalapak.com"><img class="portfolio-thumb" src="/images/portfolio-bukalapak.jpg" alt="Screenshot of the bukalapak.com homepage" width="640" height="400" loading="lazy"><div class="portfolio-body"><div class="portfolio-name">bukalapak.com<span class="project-lang">Bukalapak</span></div><div class="portfolio-desc">One of Indonesia&rsquo;s largest e-commerce platforms &mdash; six years across SRE, DevOps, and payments.</div></div></a></div>
 </div>
 
 ## Education

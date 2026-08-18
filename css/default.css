@@ -946,6 +946,65 @@ p.more-link {
     .projects { grid-template-columns: 1fr; }
 }
 
+/* --- Portfolio ------------------------------------------------------------ */
+
+.portfolio {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem 1.5rem;
+    margin: 1em 0 0;
+}
+
+.portfolio-item {
+    min-width: 0;
+}
+
+.portfolio .portfolio-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    text-decoration: none;
+    color: var(--text);
+    background: var(--bg-surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color 0.15s ease;
+}
+
+.portfolio .portfolio-card:hover,
+.portfolio .portfolio-card:focus-visible {
+    color: var(--text);
+    border-color: var(--accent);
+}
+
+.portfolio-thumb {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-bottom: 1px solid var(--rule);
+    background: var(--bg-subtle);
+}
+
+.portfolio-body {
+    padding: 0.7em 0.9em 0.9em;
+}
+
+.portfolio-name {
+    font-weight: 600;
+}
+
+.portfolio-desc {
+    font-family: var(--font-ui);
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    margin-top: 0.25em;
+}
+
+@media (max-width: 34em) {
+    .portfolio { grid-template-columns: 1fr; }
+}
+
 /* --- Skills groups -------------------------------------------------------- */
 
 .skill-group {
