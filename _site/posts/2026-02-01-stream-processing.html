@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>Composable stream processing &middot; ngublag</title>
+    <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+    <link rel="apple-touch-icon" href="../images/apple-touch-icon.png">
+
+    <!-- Set the theme before first paint to avoid a flash of the wrong one. -->
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme');
+                if (stored === 'light' || stored === 'dark') {
+                    document.documentElement.setAttribute('data-theme', stored);
+                }
+            } catch (e) {}
+        }());
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Tangerine:wght@700&display=swap">
+    <link rel="stylesheet" href="../css/default.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+    <div class="wrap header-inner">
+        <a class="brand" href="../">
+            <img class="brand-mark" src="../images/logo.svg" alt width="40" height="40">
+            <span class="brand-text">
+                <span class="brand-name">ngublag</span>
+                <span class="brand-tag">Brothel for Slaking Intellectual Lusts</span>
+            </span>
+        </a>
+
+        <nav class="site-nav" aria-label="Main">
+            <a href="../">Home</a>
+            <a href="../posts.html">Posts</a>
+            <a href="../about.html">About</a>
+            <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+                <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"></path>
+                </svg>
+                <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+                </svg>
+            </button>
+        </nav>
+    </div>
+</header>
+
+<main class="page" id="main">
+    <div class="wrap">
+        <h1 class="page-title">Composable stream processing</h1>
+        <div class="content">
+            <p class="post-meta">
+    <time>February  1, 2026</time> &middot; ardfard
+</p>
+
+<article>
+    <p>Stream processing means you handle data as it arrives, one element or chunk at a time, instead of loading the whole dataset into memory first. Batch processing does the opposite. You read a file into a list, transform it, and write it back out.</p>
+<p>Composable stream processing is about gluing small pieces into a pipeline. A reader, a parser, a filter, a database writer. Each piece stays independent, so you can rearrange them without rewriting the whole thing.</p>
+<h3 id="constant-memory">Constant memory</h3>
+<p>The practical reason people reach for streams is memory. Say you have a 100GB log file and you want to count error lines.</p>
+<p>Load the whole file with <code>f.read()</code> or <code>readFile</code> and you will OOM unless you have an absurd amount of RAM.</p>
+<p>Stream it instead. Read a line, check if it is an error, bump a counter, drop the line. At any moment you hold almost nothing. Memory stays roughly constant relative to input size, <span class="math inline"><em>O</em>(1)</span>. A 1MB file, a 100GB file, and an infinite socket look the same to your allocator.</p>
+<h3 id="haskell-conduit">Haskell: conduit</h3>
+<p>Haskell’s <code>conduit</code> and <code>pipes</code> libraries make this composition explicit, and they clean up resources like file handles deterministically. I like conduit for the pipe operator and how ResourceT handles cleanup.</p>
+<p>Here is a pipeline that generates numbers, doubles them, keeps values above 10, and prints:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.Conduit</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Conduit.List</span> <span class="kw">as</span> <span class="dt">CL</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad.Trans.Resource</span> (runResourceT)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad.IO.Class</span> (liftIO)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> runResourceT <span class="op">$</span> runConduit <span class="op">$</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Source: Generate numbers 1 to 20</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    CL.sourceList [<span class="dv">1</span><span class="op">..</span><span class="dv">20</span>]</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Conduit: Multiply each by 2</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">.|</span> CL.map (<span class="op">*</span> <span class="dv">2</span>)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Conduit: Keep only numbers &gt; 10</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">.|</span> CL.filter (<span class="op">&gt;</span> <span class="dv">10</span>)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Sink: Print the results</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">.|</span> CL.mapM_ (liftIO <span class="op">.</span> <span class="fu">print</span>)</span></code></pre></div>
+<p><code>.|</code> connects independent pieces. Swap <code>CL.sourceList</code> for <code>sourceFile</code> and the rest of the pipeline stays the same.</p>
+<p>The <a href="https://github.com/snoyberg/conduit">conduit repo</a> has solid tutorials if you want more.</p>
+<h3 id="python-generators">Python: generators</h3>
+<p>Python does the same thing with generators and <code>yield</code>. Data is produced lazily:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> number_generator(n):</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Source: Yield numbers from 0 to n-1&quot;&quot;&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(n):</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">yield</span> i</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> double_processor(stream):</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Transformer: Multiply items by 2&quot;&quot;&quot;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> item <span class="kw">in</span> stream:</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">yield</span> item <span class="op">*</span> <span class="dv">2</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> filter_large(stream, threshold):</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Transformer: Filter items greater than threshold&quot;&quot;&quot;</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> item <span class="kw">in</span> stream:</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> item <span class="op">&gt;</span> threshold:</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>            <span class="cf">yield</span> item</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Constructing the pipeline</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co"># No data is processed yet, we are just defining the flow</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>source <span class="op">=</span> number_generator(<span class="dv">20</span>)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>doubled <span class="op">=</span> double_processor(source)</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>filtered <span class="op">=</span> filter_large(doubled, <span class="dv">10</span>)</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="co"># The actual processing happens here, element by element</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> item <span class="kw">in</span> filtered:</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(item)</span></code></pre></div>
+<p><code>doubled</code> and <code>filtered</code> are generator objects. Nothing runs until the <code>for</code> loop asks for the next item. The pull propagates up the chain:</p>
+<ol type="1">
+<li><code>filtered</code> asks <code>doubled</code> for a value.</li>
+<li><code>doubled</code> asks <code>source</code> for a value.</li>
+<li><code>source</code> yields something like 6.</li>
+<li><code>doubled</code> yields 12.</li>
+<li><code>filtered</code> keeps 12 because it is greater than 10.</li>
+<li><code>print</code> gets 12.</li>
+</ol>
+<p>You never hold the full list.</p>
+<h3 id="closing-resources-in-python">Closing resources in Python</h3>
+<p>Bare generators have a sharp edge. If the consumer breaks early or raises, the generator pauses and cleanup like <code>f.close()</code> may not run. That is nondeterministic cleanup, and it is how you leak file handles in production.</p>
+<p>Haskell’s <code>ResourceT</code> solves this. In Python, reach for a context manager:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> contextlib</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> source_from_file(path):</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co">    Naive generator: Might leak file handle if iteration stops early</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">    or if an exception is raised during processing.</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    f <span class="op">=</span> <span class="bu">open</span>(path, <span class="st">'r'</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> line <span class="kw">in</span> f:</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">yield</span> <span class="bu">int</span>(line)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># This close() might never be reached!</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    f.close()</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="at">@contextlib.contextmanager</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> robust_file_source(path):</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="co">    Robust source: Guarantees file is closed using 'with' block</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="co">    &quot;&quot;&quot;</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    f <span class="op">=</span> <span class="bu">open</span>(path, <span class="st">'r'</span>)</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">yield</span> (<span class="bu">int</span>(line) <span class="cf">for</span> line <span class="kw">in</span> f)</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">finally</span>:</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">&quot;Closing file handle...&quot;</span>)</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>        f.close()</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Usage</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="co"># The 'with' block ensures the file is closed when we exit the block,</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="co"># whether we finish normally, stop early, or hit an exception.</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> robust_file_source(<span class="st">'data.txt'</span>) <span class="im">as</span> stream:</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>    doubled <span class="op">=</span> double_processor(stream)</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> item <span class="kw">in</span> doubled:</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(item)</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Even if we break here, 'finally' block above runs.</span></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> item <span class="op">&gt;</span> <span class="dv">100</span>:</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>            <span class="cf">break</span></span></code></pre></div>
+<p>The <code>with</code> block runs <code>finally</code> whether you finish, break, or throw.</p>
+<p>For S3, GCS, and Azure, <a href="https://github.com/piskvorky/smart_open">smart_open</a> handles connections, retries, and buffering behind a normal <code>open</code> API.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> smart_open <span class="im">import</span> <span class="bu">open</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Streams efficiently from S3, handles errors and cleanup</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">'s3://my-bucket/large-log.txt'</span>, <span class="st">'r'</span>) <span class="im">as</span> stream:</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> line <span class="kw">in</span> stream:</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        process(line)</span></code></pre></div>
+<h3 id="toolz-and-aiostream">toolz and aiostream</h3>
+<p>Native generators are enough for a lot of jobs. When the pipeline gets longer, <code>toolz</code> and <code>aiostream</code> save typing.</p>
+<h4 id="toolz">toolz</h4>
+<p><a href="https://github.com/pytoolz/toolz">Toolz</a> gives you functional helpers that work on iterators, so they stay lazy by default:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> toolz <span class="im">import</span> pipe</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> toolz.curried <span class="im">import</span> <span class="bu">map</span>, <span class="bu">filter</span>, take</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Define our data</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> <span class="bu">range</span>(<span class="dv">100</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Build a pipeline using pipe</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Start with data</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Multiply by 2</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Filter &gt; 10</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Take the first 5 results</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> pipe(</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    data,</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    <span class="bu">map</span>(<span class="kw">lambda</span> x: x <span class="op">*</span> <span class="dv">2</span>),</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="bu">filter</span>(<span class="kw">lambda</span> x: x <span class="op">&gt;</span> <span class="dv">10</span>),</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    take(<span class="dv">5</span>),</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="bu">list</span>  <span class="co"># Consume the iterator</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(result) <span class="co"># [12, 14, 16, 18, 20]</span></span></code></pre></div>
+<h4 id="aiostream">aiostream</h4>
+<p><a href="https://aiostream.readthedocs.io/">aiostream</a> is for async streams. Use it when the bottleneck is I/O, like hitting several APIs at once:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> asyncio</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> aiostream <span class="im">import</span> stream, pipe</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> main():</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create an async stream</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    xs <span class="op">=</span> stream.<span class="bu">range</span>(<span class="dv">10</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Compose operations</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    ys <span class="op">=</span> (xs</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>          <span class="op">|</span> pipe.<span class="bu">map</span>(<span class="kw">lambda</span> x: x <span class="op">*</span> <span class="dv">2</span>)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>          <span class="op">|</span> pipe.<span class="bu">filter</span>(<span class="kw">lambda</span> x: x <span class="op">&gt;</span> <span class="dv">5</span>)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>          <span class="op">|</span> pipe.take(<span class="dv">3</span>))</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Run the stream</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">async</span> <span class="cf">with</span> ys.stream() <span class="im">as</span> streamer:</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">async</span> <span class="cf">for</span> item <span class="kw">in</span> streamer:</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(item)</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="co"># asyncio.run(main())</span></span></code></pre></div>
+<h3 id="case-study-nightly-access-log-scan">Case study: nightly access log scan</h3>
+<p>Put the pieces together on a real job. We ran a nightly scan over gzipped nginx access logs in S3. About 40GB uncompressed per day, split across a few hundred objects. All it needed to do was count 5xx responses per route and write the worst offenders into Postgres for the on-call dashboard.</p>
+<p>The first version downloaded each object, gunzipped it to disk, loaded every line into a list, then aggregated. On a busy day the worker needed 16GB of RAM and still swapped. A corrupt file halfway through killed the whole night’s run.</p>
+<p>The streaming rewrite uses the same Python generators and <code>smart_open</code> pattern from above:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections <span class="im">import</span> Counter</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> smart_open <span class="im">import</span> <span class="bu">open</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> iter_log_lines(uris):</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Source: yield lines from each gzipped S3 object.&quot;&quot;&quot;</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> uri <span class="kw">in</span> uris:</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        <span class="co"># smart_open streams the object and decompresses on the fly</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> <span class="bu">open</span>(uri, <span class="st">'r'</span>) <span class="im">as</span> stream:</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> line <span class="kw">in</span> stream:</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>                <span class="cf">yield</span> line</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> parse_route_and_status(lines):</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Transformer: pull route and status code out of each line.&quot;&quot;&quot;</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> line <span class="kw">in</span> lines:</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Assume space-separated access log: ... &quot;GET /api/foo HTTP/1.1&quot; 500 ...</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>        parts <span class="op">=</span> line.split()</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>        route <span class="op">=</span> parts[<span class="dv">6</span>]</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>        status <span class="op">=</span> <span class="bu">int</span>(parts[<span class="dv">8</span>])</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">yield</span> route, status</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> count_5xx(pairs):</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Sink: fold into a Counter. Only routes with errors stay in memory.&quot;&quot;&quot;</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    counts <span class="op">=</span> Counter()</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> route, status <span class="kw">in</span> pairs:</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> status <span class="op">&gt;=</span> <span class="dv">500</span>:</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>            counts[route] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> counts</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>uris <span class="op">=</span> [</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">'s3://prod-logs/nginx/2026-02-01/app-01.log.gz'</span>,</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>    <span class="st">'s3://prod-logs/nginx/2026-02-01/app-02.log.gz'</span>,</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Compose the pipeline. Nothing runs until count_5xx pulls.</span></span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>error_counts <span class="op">=</span> count_5xx(parse_route_and_status(iter_log_lines(uris)))</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>write_to_postgres(error_counts.most_common(<span class="dv">20</span>))</span></code></pre></div>
+<p>Peak memory fell to a few hundred MB. The <code>Counter</code> grows with distinct error routes, not with log size. Each S3 object sits in its own <code>with</code> block, so a bad file fails alone instead of taking the whole night with it.</p>
+<p>Composability paid off more than cleverness. For local debugging we swapped the S3 URI list for a directory of files. Same parser, same fold, same Postgres sink.</p>
+<p>Build pipelines from small, reusable pieces. Process one element at a time so memory stays flat. Use conduit when you want typed, deterministic cleanup in Haskell. Use generators when you want something small in Python. Reach for toolz or aiostream when the pipeline or the I/O gets messy. Same idea in every case.</p>
+</article>
+
+        </div>
+    </div>
+</main>
+
+<footer class="site-footer">
+    <div class="wrap footer-inner">
+        <div class="footer-links">
+            <a href="https://github.com/ardfard" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://linkedin.com/in/ardin-fardiansyah-74500a56/" target="_blank" rel="noopener">LinkedIn</a>
+            <a href="https://twitter.com/ardfard101" target="_blank" rel="noopener">X</a>
+            <a href="https://bsky.app/profile/ardfard.bsky.social" target="_blank" rel="noopener">Bluesky</a>
+        </div>
+        <p class="footer-note">Ardin Fardiansyah &middot; built with <a href="http://jaspervdj.be/hakyll">Hakyll</a></p>
+    </div>
+</footer>
+
+<script src="../js/ui.js"></script>
+</body>
+</html>
