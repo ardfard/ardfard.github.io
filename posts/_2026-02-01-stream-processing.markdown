@@ -19,7 +19,7 @@ Stream it instead. Read a line, check if it is an error, bump a counter, drop th
 
 ### Case study: nightly access log scan
 
-We ran a nightly job over gzipped nginx access logs in S3. About 40GB uncompressed per day, spread across a few hundred objects. The job had one job of its own: count 5xx responses per route and write the worst offenders into Postgres for the on-call dashboard.
+We ran a nightly job over gzipped nginx access logs in S3. About 40GB uncompressed per day, split across a few hundred objects. All it needed to do was count 5xx responses per route and write the worst offenders into Postgres for the on-call dashboard.
 
 The first version downloaded each object, gunzipped it to disk, loaded every line into a list, then aggregated. On a busy day the worker needed 16GB of RAM and still swapped. A corrupt file halfway through killed the whole night's run.
 
