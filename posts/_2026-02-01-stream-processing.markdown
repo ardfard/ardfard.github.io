@@ -31,9 +31,13 @@ import Control.Monad.IO.Class (liftIO)
 
 main :: IO ()
 main = runResourceT $ runConduit $
+    -- Source: Generate numbers 1 to 20
     CL.sourceList [1..20]
+    -- Conduit: Multiply each by 2
     .| CL.map (* 2)
+    -- Conduit: Keep only numbers > 10
     .| CL.filter (> 10)
+    -- Sink: Print the results
     .| CL.mapM_ (liftIO . print)
 ```
 
@@ -47,22 +51,28 @@ Python does the same thing with generators and `yield`. Data is produced lazily:
 
 ```python
 def number_generator(n):
+    """Source: Yield numbers from 0 to n-1"""
     for i in range(n):
         yield i
 
 def double_processor(stream):
+    """Transformer: Multiply items by 2"""
     for item in stream:
         yield item * 2
 
 def filter_large(stream, threshold):
+    """Transformer: Filter items greater than threshold"""
     for item in stream:
         if item > threshold:
             yield item
 
+# Constructing the pipeline
+# No data is processed yet, we are just defining the flow
 source = number_generator(20)
 doubled = double_processor(source)
 filtered = filter_large(doubled, 10)
 
+# The actual processing happens here, element by element
 for item in filtered:
     print(item)
 ```
@@ -88,14 +98,21 @@ Haskell's `ResourceT` solves this. In Python, reach for a context manager:
 import contextlib
 
 def source_from_file(path):
-    """Naive: close() may never run if iteration stops early."""
+    """
+    Naive generator: Might leak file handle if iteration stops early
+    or if an exception is raised during processing.
+    """
     f = open(path, 'r')
     for line in f:
         yield int(line)
+    # This close() might never be reached!
     f.close()
 
 @contextlib.contextmanager
 def robust_file_source(path):
+    """
+    Robust source: Guarantees file is closed using 'with' block
+    """
     f = open(path, 'r')
     try:
         yield (int(line) for line in f)
@@ -103,10 +120,14 @@ def robust_file_source(path):
         print("Closing file handle...")
         f.close()
 
+# Usage
+# The 'with' block ensures the file is closed when we exit the block,
+# whether we finish normally, stop early, or hit an exception.
 with robust_file_source('data.txt') as stream:
     doubled = double_processor(stream)
     for item in doubled:
         print(item)
+        # Even if we break here, 'finally' block above runs.
         if item > 100:
             break
 ```
@@ -118,6 +139,7 @@ For S3, GCS, and Azure, [smart_open](https://github.com/piskvorky/smart_open) ha
 ```python
 from smart_open import open
 
+# Streams efficiently from S3, handles errors and cleanup
 with open('s3://my-bucket/large-log.txt', 'r') as stream:
     for line in stream:
         process(line)
@@ -135,17 +157,23 @@ Native generators are enough for a lot of jobs. When the pipeline gets longer, `
 from toolz import pipe
 from toolz.curried import map, filter, take
 
+# Define our data
 data = range(100)
 
+# Build a pipeline using pipe
+# 1. Start with data
+# 2. Multiply by 2
+# 3. Filter > 10
+# 4. Take the first 5 results
 result = pipe(
     data,
     map(lambda x: x * 2),
     filter(lambda x: x > 10),
     take(5),
-    list
+    list  # Consume the iterator
 )
 
-print(result)  # [12, 14, 16, 18, 20]
+print(result) # [12, 14, 16, 18, 20]
 ```
 
 #### aiostream
@@ -157,13 +185,16 @@ import asyncio
 from aiostream import stream, pipe
 
 async def main():
+    # Create an async stream
     xs = stream.range(10)
 
+    # Compose operations
     ys = (xs
           | pipe.map(lambda x: x * 2)
           | pipe.filter(lambda x: x > 5)
           | pipe.take(3))
 
+    # Run the stream
     async with ys.stream() as streamer:
         async for item in streamer:
             print(item)
