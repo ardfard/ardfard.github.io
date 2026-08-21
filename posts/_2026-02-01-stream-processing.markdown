@@ -17,6 +17,57 @@ Load the whole file with `f.read()` or `readFile` and you will OOM unless you ha
 
 Stream it instead. Read a line, check if it is an error, bump a counter, drop the line. At any moment you hold almost nothing. Memory stays roughly constant relative to input size, $O(1)$. A 1MB file, a 100GB file, and an infinite socket look the same to your allocator.
 
+### Case study: nightly access log scan
+
+We ran a nightly job over gzipped nginx access logs in S3. About 40GB uncompressed per day, spread across a few hundred objects. The job had one job of its own: count 5xx responses per route and write the worst offenders into Postgres for the on-call dashboard.
+
+The first version downloaded each object, gunzipped it to disk, loaded every line into a list, then aggregated. On a busy day the worker needed 16GB of RAM and still swapped. A corrupt file halfway through killed the whole night's run.
+
+The streaming rewrite was smaller and duller, which is what you want:
+
+```python
+from collections import Counter
+from smart_open import open
+
+def iter_log_lines(uris):
+    """Source: yield lines from each gzipped S3 object."""
+    for uri in uris:
+        # smart_open streams the object and decompresses on the fly
+        with open(uri, 'r') as stream:
+            for line in stream:
+                yield line
+
+def parse_route_and_status(lines):
+    """Transformer: pull route and status code out of each line."""
+    for line in lines:
+        # Assume space-separated access log: ... "GET /api/foo HTTP/1.1" 500 ...
+        parts = line.split()
+        route = parts[6]
+        status = int(parts[8])
+        yield route, status
+
+def count_5xx(pairs):
+    """Sink: fold into a Counter. Only routes with errors stay in memory."""
+    counts = Counter()
+    for route, status in pairs:
+        if status >= 500:
+            counts[route] += 1
+    return counts
+
+uris = [
+    's3://prod-logs/nginx/2026-02-01/app-01.log.gz',
+    's3://prod-logs/nginx/2026-02-01/app-02.log.gz',
+]
+
+# Compose the pipeline. Nothing runs until count_5xx pulls.
+error_counts = count_5xx(parse_route_and_status(iter_log_lines(uris)))
+write_to_postgres(error_counts.most_common(20))
+```
+
+Peak memory fell to a few hundred MB. The `Counter` grows with distinct error routes, not with log size. Each S3 object sits in its own `with` block, so a bad file fails alone instead of taking the whole night with it.
+
+Composability paid off more than cleverness. For local debugging we swapped the S3 URI list for a directory of files. Same parser, same fold, same Postgres sink.
+
 ### Haskell: conduit
 
 Haskell's `conduit` and `pipes` libraries make this composition explicit, and they clean up resources like file handles deterministically. I like conduit for the pipe operator and how ResourceT handles cleanup.
