@@ -221,46 +221,55 @@
 <span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="co"># asyncio.run(main())</span></span></code></pre></div>
 <h3 id="case-study-nightly-access-log-scan">Case study: nightly access log scan</h3>
 <p>Put the pieces together on a real job. We ran a nightly scan over gzipped nginx access logs in S3. About 40GB uncompressed per day, split across a few hundred objects. All it needed to do was count 5xx responses per route and write the worst offenders into Postgres for the on-call dashboard.</p>
-<p>The first version downloaded each object, gunzipped it to disk, loaded every line into a list, then aggregated. On a busy day the worker needed 16GB of RAM and still swapped. A corrupt file halfway through killed the whole night’s run.</p>
-<p>The streaming rewrite uses the same Python generators and <code>smart_open</code> pattern from above:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections <span class="im">import</span> Counter</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> smart_open <span class="im">import</span> <span class="bu">open</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> iter_log_lines(uris):</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Source: yield lines from each gzipped S3 object.&quot;&quot;&quot;</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> uri <span class="kw">in</span> uris:</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        <span class="co"># smart_open streams the object and decompresses on the fly</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> <span class="bu">open</span>(uri, <span class="st">'r'</span>) <span class="im">as</span> stream:</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> line <span class="kw">in</span> stream:</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>                <span class="cf">yield</span> line</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> parse_route_and_status(lines):</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Transformer: pull route and status code out of each line.&quot;&quot;&quot;</span></span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> line <span class="kw">in</span> lines:</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Assume space-separated access log: ... &quot;GET /api/foo HTTP/1.1&quot; 500 ...</span></span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>        parts <span class="op">=</span> line.split()</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>        route <span class="op">=</span> parts[<span class="dv">6</span>]</span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>        status <span class="op">=</span> <span class="bu">int</span>(parts[<span class="dv">8</span>])</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">yield</span> route, status</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> count_5xx(pairs):</span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Sink: fold into a Counter. Only routes with errors stay in memory.&quot;&quot;&quot;</span></span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    counts <span class="op">=</span> Counter()</span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> route, status <span class="kw">in</span> pairs:</span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> status <span class="op">&gt;=</span> <span class="dv">500</span>:</span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>            counts[route] <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> counts</span>
+<p>Without streaming we need to download each object, gunzipped it to disk, loaded every line into a list, then aggregated. On a busy day the worker needed 16GB of RAM and still swapped. A corrupt file halfway through killed the whole night’s run.</p>
+<p>The generator version fixes the memory problem, but it still downloads objects one at a time. With a few hundred gzipped files a night, most of the wall-clock time goes to waiting on S3, not parsing lines. <code>aiostream</code> lets several downloads overlap under a concurrency cap, while each file still streams line by line.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> asyncio</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> logging</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections <span class="im">import</span> Counter</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> smart_open <span class="im">import</span> <span class="bu">open</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> aiostream <span class="im">import</span> stream, pipe</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>logger <span class="op">=</span> logging.getLogger(<span class="va">__name__</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _scan_file(uri):</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Runs in a worker thread: streams one gzipped object, folds 5xx counts by route.&quot;&quot;&quot;</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    counts <span class="op">=</span> Counter()</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> <span class="bu">open</span>(uri, <span class="st">'r'</span>) <span class="im">as</span> f:</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> line <span class="kw">in</span> f:</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>                <span class="co"># Assume space-separated access log: ... &quot;GET /api/foo HTTP/1.1&quot; 500 ...</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>                parts <span class="op">=</span> line.split()</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>                route, status <span class="op">=</span> parts[<span class="dv">6</span>], <span class="bu">int</span>(parts[<span class="dv">8</span>])</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> status <span class="op">&gt;=</span> <span class="dv">500</span>:</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>                    counts[route] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">Exception</span>:</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>        logger.exception(<span class="st">&quot;skipping corrupt object: </span><span class="sc">%s</span><span class="st">&quot;</span>, uri)</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> counts</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> scan_file(uri):</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># smart_open is blocking, so hand it to a thread and let the event</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    <span class="co"># loop move on to the next download.</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="cf">await</span> asyncio.to_thread(_scan_file, uri)</span>
 <span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>uris <span class="op">=</span> [</span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">'s3://prod-logs/nginx/2026-02-01/app-01.log.gz'</span>,</span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>    <span class="st">'s3://prod-logs/nginx/2026-02-01/app-02.log.gz'</span>,</span>
-<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>]</span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Compose the pipeline. Nothing runs until count_5xx pulls.</span></span>
-<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>error_counts <span class="op">=</span> count_5xx(parse_route_and_status(iter_log_lines(uris)))</span>
-<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>write_to_postgres(error_counts.most_common(<span class="dv">20</span>))</span></code></pre></div>
-<p>Peak memory fell to a few hundred MB. The <code>Counter</code> grows with distinct error routes, not with log size. Each S3 object sits in its own <code>with</code> block, so a bad file fails alone instead of taking the whole night with it.</p>
-<p>Composability paid off more than cleverness. For local debugging we swapped the S3 URI list for a directory of files. Same parser, same fold, same Postgres sink.</p>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> scan(uris):</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    <span class="co"># task_limit caps how many objects download at once, instead of</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># all at once or one at a time.</span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>    xs <span class="op">=</span> stream.iterate(uris) <span class="op">|</span> pipe.<span class="bu">map</span>(scan_file, task_limit<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>    total <span class="op">=</span> Counter()</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">async</span> <span class="cf">with</span> xs.stream() <span class="im">as</span> streamer:</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>        <span class="cf">async</span> <span class="cf">for</span> counts <span class="kw">in</span> streamer:</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>            total.update(counts)</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> total</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>uris <span class="op">=</span> [</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>    <span class="st">'s3://prod-logs/nginx/2026-02-01/app-01.log.gz'</span>,</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>    <span class="st">'s3://prod-logs/nginx/2026-02-01/app-02.log.gz'</span>,</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>error_counts <span class="op">=</span> asyncio.run(scan(uris))</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>write_to_postgres(error_counts.most_common(<span class="dv">20</span>))</span></code></pre></div>
+<p>Peak memory stayed flat, a few hundred MB. The <code>Counter</code> grows with distinct error routes, not with log size. Eight objects now download concurrently instead of one, so the nightly run clears in less wall-clock time. A corrupt object is caught inside <code>_scan_file</code> and logged, so the rest of the run continues instead of one bad file taking the whole night with it.</p>
+<p>Composability paid off more than cleverness. For local debugging we swapped the S3 URI list for a directory of files. Same parsing, same fold, same Postgres sink.</p>
 <p>Build pipelines from small, reusable pieces. Process one element at a time so memory stays flat. Use conduit when you want typed, deterministic cleanup in Haskell. Use generators when you want something small in Python. Reach for toolz or aiostream when the pipeline or the I/O gets messy. Same idea in every case.</p>
 </article>
 

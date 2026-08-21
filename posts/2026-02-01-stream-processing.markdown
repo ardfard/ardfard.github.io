@@ -206,51 +206,60 @@ async def main():
 
 Put the pieces together on a real job. We ran a nightly scan over gzipped nginx access logs in S3. About 40GB uncompressed per day, split across a few hundred objects. All it needed to do was count 5xx responses per route and write the worst offenders into Postgres for the on-call dashboard.
 
-The first version downloaded each object, gunzipped it to disk, loaded every line into a list, then aggregated. On a busy day the worker needed 16GB of RAM and still swapped. A corrupt file halfway through killed the whole night's run.
+Without streaming we need to download each object, gunzipped it to disk, loaded every line into a list, then aggregated. On a busy day the worker needed 16GB of RAM and still swapped. A corrupt file halfway through killed the whole night's run.
 
-The streaming rewrite uses the same Python generators and `smart_open` pattern from above:
+The generator version fixes the memory problem, but it still downloads objects one at a time. With a few hundred gzipped files a night, most of the wall-clock time goes to waiting on S3, not parsing lines. `aiostream` lets several downloads overlap under a concurrency cap, while each file still streams line by line.
 
 ```python
+import asyncio
+import logging
 from collections import Counter
 from smart_open import open
+from aiostream import stream, pipe
 
-def iter_log_lines(uris):
-    """Source: yield lines from each gzipped S3 object."""
-    for uri in uris:
-        # smart_open streams the object and decompresses on the fly
-        with open(uri, 'r') as stream:
-            for line in stream:
-                yield line
+logger = logging.getLogger(__name__)
 
-def parse_route_and_status(lines):
-    """Transformer: pull route and status code out of each line."""
-    for line in lines:
-        # Assume space-separated access log: ... "GET /api/foo HTTP/1.1" 500 ...
-        parts = line.split()
-        route = parts[6]
-        status = int(parts[8])
-        yield route, status
-
-def count_5xx(pairs):
-    """Sink: fold into a Counter. Only routes with errors stay in memory."""
+def _scan_file(uri):
+    """Runs in a worker thread: streams one gzipped object, folds 5xx counts by route."""
     counts = Counter()
-    for route, status in pairs:
-        if status >= 500:
-            counts[route] += 1
+    try:
+        with open(uri, 'r') as f:
+            for line in f:
+                # Assume space-separated access log: ... "GET /api/foo HTTP/1.1" 500 ...
+                parts = line.split()
+                route, status = parts[6], int(parts[8])
+                if status >= 500:
+                    counts[route] += 1
+    except Exception:
+        logger.exception("skipping corrupt object: %s", uri)
     return counts
+
+async def scan_file(uri):
+    # smart_open is blocking, so hand it to a thread and let the event
+    # loop move on to the next download.
+    return await asyncio.to_thread(_scan_file, uri)
+
+async def scan(uris):
+    # task_limit caps how many objects download at once, instead of
+    # all at once or one at a time.
+    xs = stream.iterate(uris) | pipe.map(scan_file, task_limit=8)
+    total = Counter()
+    async with xs.stream() as streamer:
+        async for counts in streamer:
+            total.update(counts)
+    return total
 
 uris = [
     's3://prod-logs/nginx/2026-02-01/app-01.log.gz',
     's3://prod-logs/nginx/2026-02-01/app-02.log.gz',
 ]
 
-# Compose the pipeline. Nothing runs until count_5xx pulls.
-error_counts = count_5xx(parse_route_and_status(iter_log_lines(uris)))
+error_counts = asyncio.run(scan(uris))
 write_to_postgres(error_counts.most_common(20))
 ```
 
-Peak memory fell to a few hundred MB. The `Counter` grows with distinct error routes, not with log size. Each S3 object sits in its own `with` block, so a bad file fails alone instead of taking the whole night with it.
+Peak memory stayed flat, a few hundred MB. The `Counter` grows with distinct error routes, not with log size. Eight objects now download concurrently instead of one, so the nightly run clears in less wall-clock time. A corrupt object is caught inside `_scan_file` and logged, so the rest of the run continues instead of one bad file taking the whole night with it.
 
-Composability paid off more than cleverness. For local debugging we swapped the S3 URI list for a directory of files. Same parser, same fold, same Postgres sink.
+Composability paid off more than cleverness. For local debugging we swapped the S3 URI list for a directory of files. Same parsing, same fold, same Postgres sink.
 
 Build pipelines from small, reusable pieces. Process one element at a time so memory stays flat. Use conduit when you want typed, deterministic cleanup in Haskell. Use generators when you want something small in Python. Reach for toolz or aiostream when the pipeline or the I/O gets messy. Same idea in every case.
