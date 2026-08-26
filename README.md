@@ -83,13 +83,7 @@ cabal v2-run site watch
 
 ## Deployment
 
-Deploy to production server (requires `NGUBLAG_PEM_KEY` environment variable):
-
-```bash
-./deploy.sh
-```
-
-This uses rsync to sync the `_site/` directory to the remote server.
+Push to `master` — the **Deploy to GitHub Pages** workflow (`.github/workflows/deploy.yml`) builds `_site/` and deploys to the `github-pages` environment automatically. Custom domain is `ngublag.com` (see `CNAME`); GitHub provisions the certificate when **Enforce HTTPS** is enabled in Pages settings.
 
 ## Project Structure
 
