@@ -25,6 +25,16 @@ main = hakyll $ do
         route   idRoute
         compile copyFileCompiler
 
+    match "courses/*" $ do
+        route   idRoute
+        compile copyFileCompiler
+
+    match "courses.html" $ do
+        route   idRoute
+        compile $ getResourceBody
+            >>= loadAndApplyTemplate "templates/default.html" defaultContext
+            >>= relativizeUrls
+
     match "CNAME" $ do
         route   idRoute
         compile copyFileCompiler
