@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ogre-engine — skirmish</title>
+    
+<script type="module">
+import init, * as bindings from '/ogre/ogre_engine-7b630f06f7ce109f.js';
+const wasm = await init({ module_or_path: '/ogre/ogre_engine-7b630f06f7ce109f_bg.wasm' });
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script>
+    <style>
+      :root {
+        --bg: #0e1410;
+        --ink: #e8e4d9;
+        --muted: #8a9688;
+        --accent: #c45c26;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: radial-gradient(1200px 600px at 50% -10%, #243528 0%, var(--bg) 55%);
+        color: var(--ink);
+        font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      }
+      main {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem 1rem 3rem;
+      }
+      h1 {
+        margin: 0 0 0.25rem;
+        font-size: clamp(1.75rem, 4vw, 2.4rem);
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+      p {
+        margin: 0 0 1.25rem;
+        color: var(--muted);
+        font-size: 1rem;
+        max-width: 36rem;
+      }
+      #skirmish {
+        display: block;
+        width: 100%;
+        max-width: 960px;
+        height: auto;
+        border: 1px solid #2c3a30;
+        background: #1a2a1f;
+      }
+      .meta {
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      .meta a {
+        color: var(--accent);
+      }
+    </style>
+  <link rel="modulepreload" href="/ogre/ogre_engine-7b630f06f7ce109f.js" crossorigin="anonymous" integrity="sha384-l/M0lBdiFp15DU04wdJOZ9E4lcAp98TKJr45yfw+T2haClm/aQaQOI4SYIesFi2L"><link rel="preload" href="/ogre/ogre_engine-7b630f06f7ce109f_bg.wasm" crossorigin="anonymous" integrity="sha384-3u+8/nA1f/1Bgsz7sLBqhvgLC1CgXgMntLBLTJ8qFw8mXiArFVo5Gdz6Z2uGnQiP" as="fetch" type="application/wasm"></head>
+  <body>
+    <main>
+      <h1>ogre-engine</h1>
+      <p>
+        Skirmish shell — real-time map movement; clashes resolve when units meet.
+        Placeholder only; not a full Ogre Battle systems layer.
+      </p>
+      <canvas id="skirmish" width="960" height="540" aria-label="Skirmish arena"></canvas>
+      <p class="meta">
+        Playable builds target
+        <a href="https://ngublag.com/ogre/">ngublag.com/ogre/</a>
+      </p>
+    </main>
+  </body>
+</html>
